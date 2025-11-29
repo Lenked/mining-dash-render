@@ -9,10 +9,10 @@ interface DashboardCardProps {
 
 export function DashboardCard({ title, children, action, className = "" }: DashboardCardProps) {
   return (
-    <div className={`bg-panel-bg border border-panel-border rounded-xl p-6 ${className}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        {action}
+    <div className={`bg-panel-bg border border-panel-border rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 ${className}`}>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-foreground tracking-tight">{title}</h2>
+        {action && <div>{action}</div>}
       </div>
       {children}
     </div>

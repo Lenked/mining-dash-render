@@ -61,6 +61,16 @@ All colors MUST be HSL.
     --chart-tertiary: 145 65% 45%;
     --gauge-track: 215 15% 35%;
     --gauge-fill: 210 100% 50%;
+    
+    /* Enhanced shadows for premium feel */
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.15);
+    
+    /* Status colors */
+    --status-online: 145 65% 45%;
+    --status-offline: 215 15% 45%;
+    --status-alert: 0 72% 51%;
   }
 
   .dark {
@@ -115,6 +125,16 @@ All colors MUST be HSL.
     --chart-tertiary: 145 65% 45%;
     --gauge-track: 215 15% 35%;
     --gauge-fill: 210 100% 50%;
+    
+    /* Enhanced shadows for premium feel (dark mode) */
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.25);
+    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.35);
+    --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.45);
+    
+    /* Status colors */
+    --status-online: 145 65% 45%;
+    --status-offline: 215 15% 45%;
+    --status-alert: 0 72% 51%;
   }
 }
 
