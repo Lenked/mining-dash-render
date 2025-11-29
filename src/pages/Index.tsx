@@ -25,20 +25,23 @@ const Index = () => {
   return (
     <MiningLayout>
       {/* Header */}
-      <header className="bg-secondary border-b border-panel-border px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <header className="bg-secondary border-b border-panel-border px-6 py-4 flex items-center justify-between shadow-elevated">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-foreground">
-              <span className="w-2 h-2 rounded-full bg-primary mr-2" />
+            <Button variant="ghost" size="sm" className="text-foreground hover:text-primary hover:bg-primary/10">
+              <span className="w-2 h-2 rounded-full bg-status-online mr-2 animate-pulse" />
               Followers
             </Button>
-            <Button variant="ghost" size="sm" className="text-foreground">
+            <Button variant="ghost" size="sm" className="text-foreground hover:text-primary hover:bg-primary/10">
               Routes
             </Button>
-            <Button variant="ghost" size="sm" className="text-foreground">
+            <Button variant="ghost" size="sm" className="text-foreground hover:text-primary hover:bg-primary/10">
               Textient
             </Button>
           </div>
+          <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/30">
+            Selected User
+          </Badge>
         </div>
         
         <div className="flex items-center gap-4">
@@ -46,29 +49,43 @@ const Index = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Jinames"
-              className="pl-10 pr-4 py-2 bg-panel-bg border border-panel-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary w-64"
+              placeholder="Search sites, users, reports..."
+              className="pl-10 pr-4 py-2 bg-panel-bg border border-panel-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary w-80 transition-all"
             />
           </div>
-          <Button variant="ghost" size="icon">
-            <Bell className="w-5 h-5 text-foreground" />
-          </Button>
-          <Button variant="ghost" size="icon">
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+              <Bell className="w-5 h-5 text-foreground" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full border-2 border-secondary"></span>
+            </Button>
+          </div>
+          <Button variant="ghost" size="icon" className="hover:bg-primary/10">
             <Settings className="w-5 h-5 text-foreground" />
           </Button>
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-            <User className="w-5 h-5 text-accent-foreground" />
+          <div className="relative group">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center cursor-pointer ring-2 ring-transparent hover:ring-primary/50 transition-all">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-status-online rounded-full border-2 border-secondary"></span>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-8">
         {/* Top Row */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Panel - Targeted Sites */}
           <div className="lg:col-span-3">
-            <DashboardCard title="Targeted Sites">
+            <DashboardCard 
+              title="Targeted Sites"
+              action={
+                <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Online
+                </Badge>
+              }
+            >
               <div className="space-y-6">
                 <div className="flex justify-center">
                   <CircularGauge value={575} max={1000} label="kM" />
@@ -109,7 +126,10 @@ const Index = () => {
                 </div>
 
                 <div className="pt-4 border-t border-panel-border">
-                  <h4 className="text-sm font-semibold text-foreground mb-3">Targeted Sites</h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-foreground">Targeted Sites</h4>
+                    <span className="text-xs text-muted-foreground">Updated 2min ago</span>
+                  </div>
                   <SitesList />
                 </div>
               </div>
@@ -119,12 +139,17 @@ const Index = () => {
           {/* Center - Map */}
           <div className="lg:col-span-6">
             <DashboardCard
-              title="All All Sites"
+              title="All Sites Overview"
               action={
-                <Badge variant="secondary">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Exited
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+                    Live Map
+                  </Badge>
+                  <Badge variant="secondary">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    4 Active
+                  </Badge>
+                </div>
               }
             >
               <MiningMap />
@@ -154,7 +179,15 @@ const Index = () => {
 
           {/* Right Panel - Target Sites Stats */}
           <div className="lg:col-span-3">
-            <DashboardCard title="Target Sites">
+            <DashboardCard 
+              title="Target Sites"
+              action={
+                <Badge variant="secondary" className="bg-warning/20 text-warning border-warning/30">
+                  <Activity className="w-3 h-3 mr-1" />
+                  Monitoring
+                </Badge>
+              }
+            >
               <div className="space-y-6">
                 <div className="flex justify-center">
                   <CircularGauge value={575} max={1000} label="kM" color="hsl(var(--chart-secondary))" />
@@ -198,14 +231,15 @@ const Index = () => {
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-sm font-semibold text-foreground">All Sites</h4>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="text-xs">
+                      <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
                         Contives
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-xs">
+                      <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
                         Sink
                       </Button>
                     </div>
                   </div>
+                  <p className="text-xs text-muted-foreground mb-3">Distribution by category</p>
                   
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <div className="text-center">
@@ -234,7 +268,12 @@ const Index = () => {
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Statics */}
-          <DashboardCard title="Recent Statics">
+          <DashboardCard 
+            title="Recent Statistics"
+            action={
+              <span className="text-xs text-muted-foreground">Last 7 days</span>
+            }
+          >
             <RecentStatics />
             
             <div className="mt-6 pt-4 border-t border-panel-border space-y-4">
@@ -259,7 +298,12 @@ const Index = () => {
           {/* Connections */}
           <DashboardCard
             title="Connections"
-            action={<Badge variant="secondary">Cotted</Badge>}
+            action={
+              <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
+                <span className="w-2 h-2 rounded-full bg-success mr-1 animate-pulse" />
+                Connected
+              </Badge>
+            }
           >
             <ConnectionsList />
           </DashboardCard>
@@ -267,7 +311,12 @@ const Index = () => {
           {/* Quick Reports */}
           <DashboardCard
             title="Quick Reports"
-            action={<Badge variant="secondary">flatted</Badge>}
+            action={
+              <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/30">
+                <BarChart3 className="w-3 h-3 mr-1" />
+                Generated
+              </Badge>
+            }
           >
             <QuickReports />
           </DashboardCard>
@@ -275,21 +324,39 @@ const Index = () => {
 
         {/* Grid Reports */}
         <DashboardCard
-          title="Grid Reports"
-          action={<Badge variant="secondary">Cottad</Badge>}
+          title="Grid Reports Analysis"
+          action={
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+                Real-time
+              </Badge>
+              <span className="text-xs text-muted-foreground">Updated now</span>
+            </div>
+          }
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
+            <div className="bg-panel-bg/50 p-4 rounded-lg border border-panel-border">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-semibold text-foreground">Gamp Site</h4>
-                <span className="text-sm text-muted-foreground">0350</span>
+                <div>
+                  <h4 className="text-base font-bold text-foreground">Gamp Site</h4>
+                  <p className="text-xs text-muted-foreground">Production metrics</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-bold text-accent">0350</span>
+                  <p className="text-xs text-muted-foreground">units/day</p>
+                </div>
               </div>
               <GridReportChart />
             </div>
-            <div>
+            <div className="bg-panel-bg/50 p-4 rounded-lg border border-panel-border">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-semibold text-foreground">Abatiting</h4>
-                <Settings className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <h4 className="text-base font-bold text-foreground">Abatiting</h4>
+                  <p className="text-xs text-muted-foreground">Efficiency tracking</p>
+                </div>
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                  <Settings className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                </Button>
               </div>
               <GridReportChart />
             </div>

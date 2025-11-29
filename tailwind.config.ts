@@ -81,6 +81,16 @@ export default {
           track: "hsl(var(--gauge-track))",
           fill: "hsl(var(--gauge-fill))",
         },
+        status: {
+          online: "hsl(var(--status-online))",
+          offline: "hsl(var(--status-offline))",
+          alert: "hsl(var(--status-alert))",
+        },
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
+        elevated: "var(--shadow-elevated)",
       },
       borderRadius: {
         lg: "var(--radius)",

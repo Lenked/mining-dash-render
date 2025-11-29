@@ -10,17 +10,17 @@ interface StatsCardProps {
 
 export function StatsCard({ label, value, icon, iconBg = "hsl(var(--accent))" }: StatsCardProps) {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/50">
+    <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/50 border border-panel-border/50 shadow-card hover:shadow-card-hover transition-all">
       {icon && (
         <div
-          className="w-12 h-12 rounded-lg flex items-center justify-center"
+          className="w-14 h-14 rounded-xl flex items-center justify-center shadow-elevated"
           style={{ backgroundColor: iconBg }}
         >
           {icon}
         </div>
       )}
       <div className="flex-1">
-        <p className="text-sm text-muted-foreground uppercase">{label}</p>
+        <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider mb-1">{label}</p>
         <p className="text-2xl font-bold text-foreground">{value}</p>
       </div>
     </div>

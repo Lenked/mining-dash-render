@@ -43,11 +43,14 @@ export function MiningSidebar() {
       <SidebarContent>
         <div className="px-4 py-6">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Mountain className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-card">
+              <Mountain className="w-6 h-6 text-primary-foreground" />
             </div>
             {!isCollapsed && (
-              <span className="text-lg font-semibold text-sidebar-foreground">Mining</span>
+              <div>
+                <span className="text-xl font-bold text-sidebar-foreground block">AquilaTrack</span>
+                <span className="text-xs text-muted-foreground">Mining Dashboard</span>
+              </div>
             )}
           </div>
         </div>
@@ -60,17 +63,17 @@ export function MiningSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink
+                       <NavLink
                         to={item.url}
                         end
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-card"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                         }`}
                       >
-                        <item.icon className="w-5 h-5 flex-shrink-0" />
-                        {!isCollapsed && <span>{item.title}</span>}
+                        <item.icon className={`w-6 h-6 flex-shrink-0 transition-transform ${isActive ? "scale-110" : ""}`} />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
