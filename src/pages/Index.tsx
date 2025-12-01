@@ -278,6 +278,10 @@ const Index = () => {
       setSelectedZone(null);
       setContent("table"); // Show table view for real-time operations
       setActiveFleetFilter('all'); // Set 'all' filter by default
+
+
+      
+      
     } else {
       // Reset to default dashboard view
       setActiveTab("all-sites");
@@ -298,7 +302,8 @@ const Index = () => {
   const handleZoneClick = (zoneName: string) => {
     setSelectedZone(zoneName);
     setNavigationLevel("zone-detail");
-    setActiveTab(zoneName.toLowerCase().replace(" ", "-"));
+    // Don't change the activeTab to zone name since zones are no longer in the main tab list
+    // Keep the site tab active while showing zone details
     const newHistory = navigationHistory.slice(0, historyIndex + 1);
     newHistory.push({level: "zone-detail", site: selectedSite, zone: zoneName});
     setNavigationHistory(newHistory);
@@ -317,9 +322,15 @@ const Index = () => {
         setActiveTab("all-sites");
         setShowFleetData(false); // Réinitialiser l'affichage de la flotte
       } else if (historyItem.level === "site-zones") {
-        setActiveTab("all-zones");
+        // Find the site tab that should be active
+        if (historyItem.site) {
+          setActiveTab(historyItem.site.toLowerCase().replace(" ", "-"));
+        }
       } else {
-        setActiveTab(historyItem.zone?.toLowerCase().replace(" ", "-") || "all-zones");
+        // When going back from zone detail, go back to site-zones view
+        if (historyItem.site) {
+          setActiveTab(historyItem.site.toLowerCase().replace(" ", "-"));
+        }
       }
     }
   };
@@ -336,9 +347,15 @@ const Index = () => {
         setActiveTab("all-sites");
         setShowFleetData(false); // Réinitialiser l'affichage de la flotte
       } else if (historyItem.level === "site-zones") {
-        setActiveTab("all-zones");
+        // Find the site tab that should be active
+        if (historyItem.site) {
+          setActiveTab(historyItem.site.toLowerCase().replace(" ", "-"));
+        }
       } else {
-        setActiveTab(historyItem.zone?.toLowerCase().replace(" ", "-") || "all-zones");
+        // When going forward to zone detail, keep the site tab active
+        if (historyItem.site) {
+          setActiveTab(historyItem.site.toLowerCase().replace(" ", "-"));
+        }
       }
     }
   };
@@ -364,22 +381,14 @@ const Index = () => {
     if (navigationLevel === "all-sites") {
       return [
         { id: "all-sites", label: "Overview" },
-        // { id: "realtime-ops", label: "Vue Temps Réel" }, // Add the real-time operations tab
+        //{ id: "realtime-ops", label: "Vue Temps Réel" }, // Add the real-time operations tab
         ...mockSites.map(site => ({ id: site.name.toLowerCase().replace(" ", "-"), label: site.name }))
-      ];
-    } else if (navigationLevel === "site-zones") {
-      return [
-        { id: "all-sites", label: "Overview" },
-        // { id: "realtime-ops", label: "Vue Temps Réel" }, // Add the real-time operations tab
-        { id: "all-zones", label: `All Zones - ${selectedSite}` },
-        ...mockZones.map(zone => ({ id: zone.name.toLowerCase().replace(" ", "-"), label: zone.name }))
       ];
     } else {
       return [
         { id: "all-sites", label: "Overview" },
-        // { id: "realtime-ops", label: "Vue Temps Réel" }, // Add the real-time operations tab
-        { id: "all-zones", label: `All Zones - ${selectedSite}` },
-        ...mockZones.map(zone => ({ id: zone.name.toLowerCase().replace(" ", "-"), label: zone.name }))
+        //{ id: "realtime-ops", label: "Vue Temps Réel" }, // Add the real-time operations tab
+        ...mockSites.map(site => ({ id: site.name.toLowerCase().replace(" ", "-"), label: site.name }))
       ];
     }
   };
@@ -405,6 +414,7 @@ const Index = () => {
                     setSelectedZone(null);
                     setShowFleetData(false); // Réinitialiser l'affichage de la flotte
                     setContent("stat"); // Show dashboard view for normal overview
+                     setActiveFleetFilter('all');
                   } else if (tab.id === "realtime-ops") {
                     // For the real-time operations tab, show fleet management view
                     setNavigationLevel("all-sites");
@@ -442,8 +452,29 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Barre de filtre pour la flotte de véhicules - visible when viewing real-time operations */}
-        {content === "table" && (
+        {/* Zones as sous-onglets - displayed when viewing a specific site */}
+        {navigationLevel === "site-zones" && selectedSite && (
+          <div className="flex items-center justify-start px-6 py-3 border-b border-panel-border/50 bg-background/50">
+            <div className="flex items-center space-x-2 bg-panel-bg p-1 rounded-full border border-panel-border shadow-sm">
+              {mockZones.map((zone) => (
+                <button
+                  key={zone.id}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    selectedZone === zone.name
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  }`}
+                  onClick={() => handleZoneClick(zone.name)}
+                >
+                  {zone.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Barre de filtre pour la flotte de véhicules - visible only in real-time operations view */}
+        {content === "table" && activeTab === "all-sites" && (
           <div className="flex items-center justify-start px-6 py-3 border-b border-panel-border/50 bg-background/50">
             <div className="flex items-center space-x-2 bg-panel-bg p-1 rounded-full border border-panel-border shadow-sm">
               <button
@@ -1172,6 +1203,7 @@ const Index = () => {
             </div>
           </div>
         )}
+
       </div>
 
     </MiningLayout>
