@@ -27,12 +27,14 @@ import {
   CircleArrowOutDownRightIcon,
   SettingsIcon,
   HistoryIcon,
+  Tractor,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigationView } from "@/context/NavigationViewContext";
 
 const navItems = [
   { title: "Vue temps reel des operations", url: "", icon: TimerIcon },
+  { title: "Tracking", url: "/sonics", icon: Tractor },
   { title: "Gestion des Trajets", url: "/sonics", icon: CarIcon },
   { title: "Gestion des Notifications", url: "/battles", icon: BellIcon },
   { title: "Gestion des Sites", url: "/routes", icon: AreaChart },

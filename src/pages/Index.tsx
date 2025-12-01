@@ -1083,68 +1083,140 @@ const Index = () => {
               </div>
 
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <Activity className="w-6 h-6 text-primary" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-10">
+                {/* En transit */}
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border flex flex-col h-full min-h-[140px]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                      <Activity className="w-5 h-5 text-primary" />
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Loading Queue</p>
-                      <p className="text-2xl font-bold text-foreground">24</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 h-2 bg-primary/20 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-3/4"></div>
-                  </div>
-                </div>
-
-                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <Zap className="w-6 h-6 text-success" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Moving Towers</p>
-                      <p className="text-2xl font-bold text-foreground">18</p>
+                    <div className="flex-1">
+                      <p className="text-xl font-bold text-foreground truncate">24</p>
                     </div>
                   </div>
-                  <div className="mt-3 h-2 bg-success/20 rounded-full overflow-hidden">
-                    <div className="h-full bg-success w-2/3"></div>
+                  <p className="text-sm text-muted-foreground mb-3 truncate">En transit</p>
+                  <div className="mt-auto">
+                    <div className="h-1.5 bg-primary/20 rounded-full overflow-hidden">
+                      <div className="h-full bg-primary w-3/4"></div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-accent/10 rounded-lg">
-                      <BarChart3 className="w-6 h-6 text-accent" />
+                {/* Dans la file d'attente */}
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border flex flex-col h-full min-h-[140px]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                      <Activity className="w-5 h-5 text-primary" />
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Loading Fact</p>
-                      <p className="text-2xl font-bold text-foreground">86.6%</p>
+                    <div className="flex-1">
+                      <p className="text-xl font-bold text-foreground truncate">24</p>
                     </div>
                   </div>
-                  <div className="mt-3 h-2 bg-accent/20 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent w-4/5"></div>
+                  <p className="text-sm text-muted-foreground mb-3 truncate">File d'attente</p>
+                  <div className="mt-auto">
+                    <div className="h-1.5 bg-primary/20 rounded-full overflow-hidden">
+                      <div className="h-full bg-primary w-3/4"></div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-warning/10 rounded-lg">
-                      <TrendingUp className="w-6 h-6 text-warning" />
+                {/* Chargement */}
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border flex flex-col h-full min-h-[140px]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-success/10 rounded-lg flex-shrink-0">
+                      <Zap className="w-5 h-5 text-success" />
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Operational Status</p>
-                      <p className="text-2xl font-bold text-foreground">92%</p>
+                    <div className="flex-1">
+                      <p className="text-xl font-bold text-foreground truncate">18</p>
                     </div>
                   </div>
-                  <div className="mt-3 h-2 bg-warning/20 rounded-full overflow-hidden">
-                    <div className="h-full bg-warning w-5/6"></div>
+                  <p className="text-sm text-muted-foreground mb-3 truncate">Chargement</p>
+                  <div className="mt-auto">
+                    <div className="h-1.5 bg-success/20 rounded-full overflow-hidden">
+                      <div className="h-full bg-success w-2/3"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Déchargement */}
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border flex flex-col h-full min-h-[140px]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-accent/10 rounded-lg flex-shrink-0">
+                      <BarChart3 className="w-5 h-5 text-accent" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xl font-bold text-foreground truncate">86.6%</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3 truncate">Déchargement</p>
+                  <div className="mt-auto">
+                    <div className="h-1.5 bg-accent/20 rounded-full overflow-hidden">
+                      <div className="h-full bg-accent w-4/5"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Retour à la base */}
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border flex flex-col h-full min-h-[140px]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-warning/10 rounded-lg flex-shrink-0">
+                      <TrendingUp className="w-5 h-5 text-warning" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xl font-bold text-foreground truncate">92%</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3 truncate">Retour base</p>
+                  <div className="mt-auto">
+                    <div className="h-1.5 bg-warning/20 rounded-full overflow-hidden">
+                      <div className="h-full bg-warning w-5/6"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Maintenance */}
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border flex flex-col h-full min-h-[140px]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-warning/10 rounded-lg flex-shrink-0">
+                      <TrendingUp className="w-5 h-5 text-warning" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xl font-bold text-foreground truncate">92%</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3 truncate">Maintenance</p>
+                  <div className="mt-auto">
+                    <div className="h-1.5 bg-warning/20 rounded-full overflow-hidden">
+                      <div className="h-full bg-warning w-5/6"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Inactif */}
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border flex flex-col h-full min-h-[140px]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-warning/10 rounded-lg flex-shrink-0">
+                      <TrendingUp className="w-5 h-5 text-warning" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xl font-bold text-foreground truncate">92%</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3 truncate">Inactif</p>
+                  <div className="mt-auto">
+                    <div className="h-1.5 bg-warning/20 rounded-full overflow-hidden">
+                      <div className="h-full bg-warning w-5/6"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-
+              {/**En transit
+              Dans la file d'attente
+              Chargement
+              Déchargement
+              Retour à la base
+              Maintenance
+              Inactif */}
               {/* Fleet Data Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
