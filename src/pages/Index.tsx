@@ -32,12 +32,14 @@ import {
   ListIcon,
   ArrowBigRight,
   TimerIcon,
+  Car,
   CarIcon,
   BellIcon,
   DockIcon,
-  UsersIcon
+  UsersIcon,
+  Truck
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import {
   ContextMenuContent,
@@ -60,6 +62,20 @@ const mockZones = [
   { id: 1, name: "Zone A", status: "active", equipment: 12, area: "45 ha" },
   { id: 2, name: "Zone B", status: "active", equipment: 8, area: "32 ha" },
   { id: 3, name: "Zone C", status: "maintenance", equipment: 15, area: "67 ha" },
+];
+
+// Données de la flotte de véhicules
+const fleetData = [
+  { id: 'C001', type: 'truck', status: 'active', site: 'Site Alpha', capacity: '25t', lastUpdate: 'Il y a 10 min' },
+  { id: 'C002', type: 'truck', status: 'maintenance', site: 'Atelier', capacity: '25t', lastUpdate: 'Il y a 2h' },
+  { id: 'C003', type: 'truck', status: 'in-transit', site: 'Route vers Site Beta', capacity: '25t', lastUpdate: 'Il y a 5 min' },
+  { id: 'C004', type: 'truck', status: 'active', site: 'Site Gamma', capacity: '25t', lastUpdate: 'Il y a 30 min' },
+  { id: 'C005', type: 'truck', status: 'inactive', site: 'Garage', capacity: '25t', lastUpdate: 'Hier' },
+  { id: 'R001', type: 'trailer', status: 'active', site: 'Site Alpha', capacity: '30t', lastUpdate: 'Il y a 15 min' },
+  { id: 'R002', type: 'trailer', status: 'active', site: 'Zone de chargement', capacity: '30t', lastUpdate: 'Il y a 45 min' },
+  { id: 'R003', type: 'trailer', status: 'maintenance', site: 'Atelier', capacity: '30t', lastUpdate: 'Il y a 3h' },
+  { id: 'R004', type: 'trailer', status: 'in-transit', site: 'Route vers Site Delta', capacity: '30t', lastUpdate: 'Il y a 20 min' },
+  { id: 'R005', type: 'trailer', status: 'active', site: 'Site Beta', capacity: '30t', lastUpdate: 'Il y a 1h' },
 ];
 
 // Navigation types
@@ -136,6 +152,10 @@ const TabButton = ({
     return <IconComponent className="w-4 h-4" />;
   };
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   const handleAction = (actionId: string) => {
     switch (actionId) {
       case 'refresh':
@@ -150,7 +170,9 @@ const TabButton = ({
         alert(`Duplicating tab: ${label}`);
         break;
       case 'close':
-        onClose && onClose();
+        if (onClose) {
+          onClose();
+        }
         break;
       case 'close-others':
         // Placeholder for close others functionality
@@ -220,6 +242,19 @@ const Index = () => {
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [navigationHistory, setNavigationHistory] = useState<HistoryItem[]>([{level: "all-sites"}]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [activeFleetFilter, setActiveFleetFilter] = useState<'all' | 'truck' | 'trailer'>('all');
+  const [showFleetData, setShowFleetData] = useState(false);
+  const [modalOpen, setModalOpen] = useState(true);
+
+  // Set showFleetData to true when on Overview tab with 'all' filter by default
+  useEffect(() => {
+    if (activeTab === "all-sites" && activeFleetFilter === 'all') {
+      setShowFleetData(true);
+    } else {
+      // Hide fleet data if not on Overview tab or not on 'all' filter
+      setShowFleetData(false);
+    }
+  }, [activeTab, activeFleetFilter]);
 
   const handleSiteClick = (siteName: string) => {
     setSelectedSite(siteName);
@@ -251,6 +286,7 @@ const Index = () => {
       setSelectedZone(historyItem.zone || null);
       if (historyItem.level === "all-sites") {
         setActiveTab("all-sites");
+        setShowFleetData(false); // Réinitialiser l'affichage de la flotte
       } else if (historyItem.level === "site-zones") {
         setActiveTab("all-zones");
       } else {
@@ -269,6 +305,7 @@ const Index = () => {
       setSelectedZone(historyItem.zone || null);
       if (historyItem.level === "all-sites") {
         setActiveTab("all-sites");
+        setShowFleetData(false); // Réinitialiser l'affichage de la flotte
       } else if (historyItem.level === "site-zones") {
         setActiveTab("all-zones");
       } else {
@@ -279,6 +316,19 @@ const Index = () => {
 
   const handleRefresh = () => {
     window.location.reload();
+  };
+
+  // Fonction pour filtrer les données de la flotte selon le filtre sélectionné
+  const getFilteredFleetData = () => {
+    if (activeFleetFilter === 'all') {
+      return fleetData;
+    }
+    return fleetData.filter(vehicle => vehicle.type === activeFleetFilter);
+  };
+
+  // Fonction pour déterminer si afficher le contenu de la flotte
+  const shouldShowFleetContent = () => {
+    return showFleetData && activeFleetFilter !== 'all';
   };
 
   const getTabs = () => {
@@ -321,6 +371,7 @@ const Index = () => {
                     setNavigationLevel("all-sites");
                     setSelectedSite(null);
                     setSelectedZone(null);
+                    setShowFleetData(false); // Réinitialiser l'affichage de la flotte
                   } else {
                     // Check if this tab corresponds to a specific site
                     const siteName = mockSites.find(site =>
@@ -330,6 +381,7 @@ const Index = () => {
                     if (siteName) {
                       setSelectedSite(siteName);
                       setNavigationLevel("site-zones");
+                      setShowFleetData(false); // Réinitialiser l'affichage de la flotte
                       // Update history when navigating via tab
                       const newHistory = navigationHistory.slice(0, historyIndex + 1);
                       newHistory.push({level: "site-zones", site: siteName});
@@ -340,16 +392,63 @@ const Index = () => {
                 }}
               />
             ))}
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="ml-2 h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary hover:scale-110 transition-all"
             >
               <Plus className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        
+
+        {/* Barre de filtre pour la flotte de véhicules */}
+        {activeTab === "all-sites" && (
+          <div className="flex items-center justify-start px-6 py-3 border-b border-panel-border/50 bg-background/50">
+            <div className="flex items-center space-x-2 bg-panel-bg p-1 rounded-full border border-panel-border shadow-sm">
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeFleetFilter === 'all'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+                onClick={() => {
+                  setActiveFleetFilter('all');
+                  setModalOpen(true);  // Show fleet data in main content
+                }}
+              >
+                Tous
+              </button>
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeFleetFilter === 'truck'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+                onClick={() => {
+                  setActiveFleetFilter('truck');
+                  setModalOpen(true);  // Show fleet data in main content
+                }}
+              >
+                Camion
+              </button>
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeFleetFilter === 'trailer'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+                onClick={() => {
+                  setActiveFleetFilter('trailer');
+                  setModalOpen(true);  // Show fleet data in main content
+                }}
+              >
+                Remorque
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Search and Actions Bar */}
         <div className="flex items-center justify-between px-6 py-3 border-t border-panel-border/50">
           {/* Left - Navigation Buttons */}
@@ -424,8 +523,11 @@ const Index = () => {
           <>
             {/* Top Row */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Panel - Targeted Sites */}
-              <div className="lg:col-span-3">
+
+              <div className="lg:col-span-9">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left Panel - Targeted Sites */}
+              <div className="lg:col-span-4">
                 <DashboardCard
                   title="Targeted Sites"
                   action={
@@ -486,7 +588,7 @@ const Index = () => {
               </div>
 
               {/* Center - Map */}
-              <div className="lg:col-span-6">
+              <div className="lg:col-span-8">
                 <DashboardCard
                   title={
                     navigationLevel === "site-zones" && selectedSite
@@ -529,6 +631,55 @@ const Index = () => {
                   </div>
                 </DashboardCard>
               </div>
+                  <div className="lg:col-span-12">
+                     {/* All Sites List - Clickable */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {mockSites.map((site) => {
+                // If we're in site-zones level, only show the selected site
+                if (navigationLevel === "site-zones" && selectedSite && selectedSite !== site.name) {
+                  return null;
+                }
+                return (
+                  <Card
+                    key={site.id}
+                    onClick={() => handleSiteClick(site.name)}
+                    className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
+                        <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
+                      </div>
+                      <Badge className={
+                        site.status === "online"
+                          ? "bg-success/20 text-success border-success/30"
+                          : "bg-warning/20 text-warning border-warning/30"
+                      }>
+                        {site.status}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Zones:</span>
+                        <span className="text-foreground font-medium">{site.zones}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Production:</span>
+                        <span className="text-foreground font-medium">{site.production}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Efficiency:</span>
+                        <span className="text-foreground font-medium">{site.efficiency}</span>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+                  </div>
+                </div>
+              </div>
+            
 
               {/* Right Panel - Target Sites Stats */}
               <div className="lg:col-span-3">
@@ -623,50 +774,8 @@ const Index = () => {
               </div>
             </div>
 
-            {/* All Sites List - Clickable */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {mockSites.map((site) => {
-                // If we're in site-zones level, only show the selected site
-                if (navigationLevel === "site-zones" && selectedSite && selectedSite !== site.name) {
-                  return null;
-                }
-                return (
-                  <Card
-                    key={site.id}
-                    onClick={() => handleSiteClick(site.name)}
-                    className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
-                        <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
-                      </div>
-                      <Badge className={
-                        site.status === "online"
-                          ? "bg-success/20 text-success border-success/30"
-                          : "bg-warning/20 text-warning border-warning/30"
-                      }>
-                        {site.status}
-                      </Badge>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Zones:</span>
-                        <span className="text-foreground font-medium">{site.zones}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Production:</span>
-                        <span className="text-foreground font-medium">{site.production}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Efficiency:</span>
-                        <span className="text-foreground font-medium">{site.efficiency}</span>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+           
+
           </>
         )}
 
@@ -884,7 +993,142 @@ const Index = () => {
             </div>
           </>
         )}
+
+        {/* Fleet Data Table - Displayed when showFleetData is true */}
+        {showFleetData && activeTab === "all-sites" && (
+          <div className="mt-8">
+            <div className="bg-panel-bg border border-panel-border rounded-xl shadow-elevated p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-foreground">
+                  {activeFleetFilter === 'all' && 'Tous les véhicules'}
+                  {activeFleetFilter === 'truck' && 'Camions'}
+                  {activeFleetFilter === 'trailer' && 'Remorques'}
+                </h2>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <Activity className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Loading Queue</p>
+                      <p className="text-2xl font-bold text-foreground">24</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-2 bg-primary/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary w-3/4"></div>
+                  </div>
+                </div>
+
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <Zap className="w-6 h-6 text-success" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Moving Towers</p>
+                      <p className="text-2xl font-bold text-foreground">18</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-2 bg-success/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-success w-2/3"></div>
+                  </div>
+                </div>
+
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-accent/10 rounded-lg">
+                      <BarChart3 className="w-6 h-6 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Loading Fact</p>
+                      <p className="text-2xl font-bold text-foreground">86.6%</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-2 bg-accent/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-accent w-4/5"></div>
+                  </div>
+                </div>
+
+                <div className="bg-secondary/30 p-4 rounded-lg border border-panel-border">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-warning/10 rounded-lg">
+                      <TrendingUp className="w-6 h-6 text-warning" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Operational Status</p>
+                      <p className="text-2xl font-bold text-foreground">92%</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-2 bg-warning/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-warning w-5/6"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fleet Data Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-secondary/30">
+                    <tr>
+                      <th className="py-3 px-4 text-left">Véhicule</th>
+                      <th className="py-3 px-4 text-left">Catégorie</th>
+                      <th className="py-3 px-4 text-left">Statut</th>
+                      <th className="py-3 px-4 text-left">Site</th>
+                      <th className="py-3 px-4 text-left">Capacité</th>
+                      <th className="py-3 px-4 text-left">Dernière mise à jour</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getFilteredFleetData().map((vehicle) => (
+                      <tr key={vehicle.id} className="border-t border-panel-border/50 hover:bg-secondary/20 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-secondary rounded-lg">
+                              {vehicle.type === 'truck' ? (
+                                <Car className="w-5 h-5 text-primary" />
+                              ) : (
+                                <Truck className="w-5 h-5 text-accent" />
+                              )}
+                            </div>
+                            <span className="font-medium">{vehicle.id}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 capitalize">
+                          {vehicle.type === 'truck' ? 'Camion' : 'Remorque'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge
+                            variant="outline"
+                            className={`
+                              border-transparent ${vehicle.status === 'active' ? 'bg-success/20 text-success' :
+                              vehicle.status === 'maintenance' ? 'bg-warning/20 text-warning' :
+                              vehicle.status === 'in-transit' ? 'bg-primary/20 text-primary' :
+                              'bg-destructive/20 text-destructive'}
+                            `}
+                          >
+                            {vehicle.status === 'active' && 'Actif'}
+                            {vehicle.status === 'maintenance' && 'Maintenance'}
+                            {vehicle.status === 'in-transit' && 'En transit'}
+                            {vehicle.status === 'inactive' && 'Inactif'}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">{vehicle.site}</td>
+                        <td className="py-3 px-4">{vehicle.capacity}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{vehicle.lastUpdate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
     </MiningLayout>
   );
 };
