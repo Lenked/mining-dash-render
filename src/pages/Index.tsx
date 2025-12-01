@@ -18,55 +18,132 @@ import {
   CheckCircle2,
   TrendingUp,
   Activity,
-  BarChart3
+  BarChart3,
+  Plus
 } from "lucide-react";
+
+// Mock data
+const mockSiteUpdates = [
+  { id: 1, site: "North Mine A", message: "Production target reached", time: "2 min ago", type: "success" },
+  { id: 2, site: "East Quarry", message: "Equipment maintenance scheduled", time: "5 min ago", type: "warning" },
+  { id: 3, site: "South Site B", message: "Alert: Low fuel level", time: "8 min ago", type: "error" },
+  { id: 4, site: "West Valley", message: "New shift started", time: "12 min ago", type: "success" },
+];
+
+const mockProductionStats = [
+  { id: 1, label: "Daily Output", value: "2,847", unit: "tons", change: "+12%", progress: 85 },
+  { id: 2, label: "Efficiency Rate", value: "94.2", unit: "%", change: "+3%", progress: 94 },
+  { id: 3, label: "Active Workers", value: "186", unit: "people", change: "+8", progress: 78 },
+];
+
+const mockEquipmentStatus = [
+  { id: "EQ-001", name: "Excavator Prime", status: "operational", uptime: "98.5%" },
+  { id: "EQ-002", name: "Loader Delta", status: "maintenance", uptime: "87.2%" },
+  { id: "EQ-003", name: "Drill Rig Alpha", status: "operational", uptime: "95.8%" },
+  { id: "EQ-004", name: "Crusher Unit", status: "offline", uptime: "0%" },
+];
+
+// Tab Button Component
+const TabButton = ({ 
+  children, 
+  active = false, 
+  icon = null, 
+  variant = "default" 
+}: { 
+  children: React.ReactNode; 
+  active?: boolean; 
+  icon?: React.ReactNode; 
+  variant?: "default" | "accent";
+}) => (
+  <button
+    className={`
+      relative px-4 py-2 rounded-t-lg text-sm font-medium transition-all
+      ${active 
+        ? 'bg-panel-bg text-foreground border-t border-l border-r border-panel-border' 
+        : variant === "accent"
+        ? 'bg-accent/10 text-accent hover:bg-accent/20 border border-accent/30 rounded-lg mx-1'
+        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+      }
+      ${active ? 'shadow-sm' : ''}
+    `}
+  >
+    <div className="flex items-center gap-2">
+      {icon}
+      <span>{children}</span>
+    </div>
+    {active && (
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+    )}
+  </button>
+);
 
 const Index = () => {
   return (
     <MiningLayout>
       {/* Header */}
-      <header className="bg-secondary border-b border-panel-border px-6 py-4 flex items-center justify-between shadow-elevated">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-foreground hover:text-primary hover:bg-primary/10">
-              <span className="w-2 h-2 rounded-full bg-status-online mr-2 animate-pulse" />
+      <header className="bg-secondary border-b border-panel-border shadow-elevated">
+        {/* Tabs Navigation */}
+        <div className="flex items-center justify-between px-6 pt-3">
+          <div className="flex items-center gap-1">
+            <TabButton active icon={<span className="w-2 h-2 rounded-full bg-status-online animate-pulse" />}>
               Followers
-            </Button>
-            <Button variant="ghost" size="sm" className="text-foreground hover:text-primary hover:bg-primary/10">
+            </TabButton>
+            <TabButton icon={null}>
               Routes
-            </Button>
-            <Button variant="ghost" size="sm" className="text-foreground hover:text-primary hover:bg-primary/10">
+            </TabButton>
+            <TabButton icon={null}>
               Textient
+            </TabButton>
+            <TabButton icon={null} variant="accent">
+              Selected User
+            </TabButton>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="ml-2 h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary"
+            >
+              <Plus className="w-4 h-4" />
             </Button>
           </div>
-          <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/30">
-            Selected User
-          </Badge>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search sites, users, reports..."
-              className="pl-10 pr-4 py-2 bg-panel-bg border border-panel-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary w-80 transition-all"
-            />
-          </div>
-          <div className="relative">
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-              <Bell className="w-5 h-5 text-foreground" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full border-2 border-secondary"></span>
-            </Button>
-          </div>
-          <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-            <Settings className="w-5 h-5 text-foreground" />
-          </Button>
-          <div className="relative group">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center cursor-pointer ring-2 ring-transparent hover:ring-primary/50 transition-all">
-              <User className="w-5 h-5 text-white" />
+        {/* Search and Actions Bar */}
+        <div className="flex items-center justify-between px-6 py-3 border-t border-panel-border/50">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search sites, users, reports..."
+                className="pl-10 pr-4 py-2 bg-panel-bg border border-panel-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary w-80 transition-all"
+              />
             </div>
-            <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-status-online rounded-full border-2 border-secondary"></span>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
+                Filter by region
+              </Button>
+              <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
+                Export data
+              </Button>
+            </div>
+          </div>
+        
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                <Bell className="w-5 h-5 text-foreground" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full border-2 border-secondary"></span>
+              </Button>
+            </div>
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+              <Settings className="w-5 h-5 text-foreground" />
+            </Button>
+            <div className="relative group">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center cursor-pointer ring-2 ring-transparent hover:ring-primary/50 transition-all">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-status-online rounded-full border-2 border-secondary"></span>
+            </div>
           </div>
         </div>
       </header>
@@ -264,6 +341,87 @@ const Index = () => {
             </DashboardCard>
           </div>
         </div>
+
+        {/* Additional Content Row */}
+        <DashboardCard
+          title="Sites Activity Overview"
+          action={
+            <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+              Live Feed
+            </Badge>
+          }
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-foreground mb-3">Recent Updates</h4>
+              {mockSiteUpdates.map((update) => (
+                <div key={update.id} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30 border border-panel-border/30">
+                  <div className={`w-2 h-2 rounded-full mt-1.5 ${
+                    update.type === 'success' ? 'bg-status-online' : 
+                    update.type === 'warning' ? 'bg-warning' : 'bg-destructive'
+                  } animate-pulse`} />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">{update.site}</p>
+                    <p className="text-xs text-muted-foreground">{update.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{update.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-foreground mb-3">Production Stats</h4>
+              <div className="space-y-3">
+                {mockProductionStats.map((stat) => (
+                  <div key={stat.id} className="p-4 rounded-lg bg-gradient-to-br from-accent/10 to-transparent border border-accent/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">{stat.label}</span>
+                      <span className="text-xs text-accent">{stat.change}</span>
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <span className="text-2xl font-bold text-foreground">{stat.value}</span>
+                      <span className="text-xs text-muted-foreground mb-1">{stat.unit}</span>
+                    </div>
+                    <div className="h-1 bg-secondary rounded-full mt-2 overflow-hidden">
+                      <div 
+                        className="h-full bg-accent rounded-full transition-all"
+                        style={{ width: `${stat.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-foreground mb-3">Equipment Status</h4>
+              <div className="space-y-3">
+                {mockEquipmentStatus.map((equipment) => (
+                  <div key={equipment.id} className="p-3 rounded-lg bg-secondary/50 border border-panel-border/30 hover:border-primary/30 transition-all cursor-pointer">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-foreground">{equipment.name}</span>
+                      <Badge 
+                        variant="secondary" 
+                        className={
+                          equipment.status === 'operational' ? 'bg-success/20 text-success border-success/30' :
+                          equipment.status === 'maintenance' ? 'bg-warning/20 text-warning border-warning/30' :
+                          'bg-destructive/20 text-destructive border-destructive/30'
+                        }
+                      >
+                        {equipment.status}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>ID: {equipment.id}</span>
+                      <span>•</span>
+                      <span>Uptime: {equipment.uptime}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DashboardCard>
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
