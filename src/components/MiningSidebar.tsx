@@ -18,16 +18,27 @@ import {
   Waves,
   BarChart3,
   Archive,
+  AreaChart,
+  DockIcon,
+  CarIcon,
+  BellIcon,
+  TimerIcon,
+  RefreshCwIcon,
+  CircleArrowOutDownRightIcon,
+  SettingsIcon,
+  HistoryIcon,
 } from "lucide-react";
 
 const navItems = [
-  { title: "Mining", url: "/", icon: Mountain },
-  { title: "Sonics", url: "/sonics", icon: Radio },
-  { title: "Battles", url: "/battles", icon: Swords },
-  { title: "Routes", url: "/routes", icon: Route },
-  { title: "Sonars", url: "/sonars", icon: Waves },
-  { title: "Statics", url: "/statics", icon: BarChart3 },
-  { title: "Fonts", url: "/fonts", icon: Archive },
+  { title: "Vue temps reel des operations", url: "/", icon: TimerIcon },
+  { title: "Gestion des Trajets", url: "/sonics", icon: CarIcon },
+  { title: "Gestion des Notifications", url: "/battles", icon: BellIcon },
+  { title: "Gestion des Sites", url: "/routes", icon: AreaChart },
+  { title: "Rapport", url: "/sonars", icon: DockIcon },
+  { title: "Analyses", url: "/statics", icon: BarChart3 },
+  { title: "Historique des Actions", url: "/statics", icon: HistoryIcon },
+  { title: "Parametres", url: "/statics", icon: SettingsIcon },
+  
 ];
 
 export function MiningSidebar() {
@@ -44,12 +55,12 @@ export function MiningSidebar() {
         <div className="px-4 py-6">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-card">
-              <Mountain className="w-6 h-6 text-primary-foreground" />
+              <Mountain className="w-6 h-6 text-secondary-foreground" />
             </div>
             {!isCollapsed && (
               <div>
-                <span className="text-xl font-bold text-sidebar-foreground block">AquilaTrack</span>
-                <span className="text-xs text-muted-foreground">Mining Dashboard</span>
+                <span className="text-xl font-bold text-sidebar-foreground block">FS IOT Mining</span>
+                <span className="text-xs text-muted-foreground">Fleet Solution IOT Mining</span>
               </div>
             )}
           </div>

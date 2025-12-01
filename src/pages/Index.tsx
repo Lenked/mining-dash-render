@@ -8,10 +8,10 @@ import { AllSitesChart } from "@/components/dashboard/ChartPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { 
-  Search, 
-  Bell, 
-  User, 
+import {
+  Search,
+  Bell,
+  User,
   Settings,
   CheckCircle2,
   TrendingUp,
@@ -23,9 +23,29 @@ import {
   RotateCw,
   MapPin,
   Zap,
-  AlertTriangle
+  AlertTriangle,
+  MoreVertical,
+  Download,
+  Copy,
+  X,
+  PlusIcon,
+  ListIcon,
+  ArrowBigRight,
+  TimerIcon,
+  CarIcon,
+  BellIcon,
+  DockIcon,
+  UsersIcon
 } from "lucide-react";
 import { useState } from "react";
+import * as ContextMenu from "@radix-ui/react-context-menu";
+import {
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+  ContextMenuSeparator,
+} from "@/components/ui/context-menu";
+import type { ReactElement, ReactNode } from 'react';
 
 // Mock data
 const mockSites = [
@@ -51,47 +71,145 @@ interface HistoryItem {
 }
 
 // Tab Button Component
-const TabButton = ({ 
+const TabButton = ({
   id,
   label,
-  active = false, 
+  active = false,
   onClick,
   onClose
-}: { 
+}: {
   id: string;
   label: string;
   active?: boolean;
   onClick?: () => void;
   onClose?: () => void;
-}) => (
-  <div
-    onClick={onClick}
-    className={`
-      group relative px-4 py-2 rounded-t-lg text-sm font-medium transition-all duration-300 cursor-pointer
-      flex items-center gap-2
-      ${active 
-        ? 'bg-panel-bg text-foreground border-t-2 border-x border-panel-border border-t-primary shadow-sm' 
-        : 'text-muted-foreground hover:text-foreground hover:bg-panel-bg/30 bg-panel-bg/20'
-      }
-    `}
-  >
-    <span>{label}</span>
-    {onClose && !active && (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}
-        className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive text-xs"
-      >
-        ×
-      </button>
-    )}
-    {active && (
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-fade-in" />
-    )}
-  </div>
-);
+}) => {
+  // Determine if this tab is a site-specific tab
+  const isSiteTab = mockSites.some(site => site.name.toLowerCase().replace(" ", "-") === id);
+  const isAllSitesTab = id === "all-sites";
+
+  // Context menu actions based on tab type
+  type ContextMenuAction = {
+    id: string;
+    label: string;
+    icon: React.ElementType;
+  };
+
+  const getContextMenuActions = (): ContextMenuAction[] => {
+    if (isAllSitesTab) {
+      return [
+        { id: 'refresh', label: 'Refresh Stats', icon: RotateCw },
+        { id: 'add', label: 'Ajouter des Sites', icon: PlusIcon },
+        { id: 'liste', label: 'Listes des Sites', icon: ListIcon },
+        { id: 'gest-actif', label: 'Gestion des Actifs', icon: ArrowBigRight },
+        { id: 'vue-temps-reel', label: 'Vue Temps Réel des Operations', icon: TimerIcon },
+        { id: 'gest-trajet', label: 'Gestion des Trajets', icon:CarIcon },
+        { id: 'gest-notif', label: 'Gestion des Notifications', icon:BellIcon },
+        { id: 'gest-personnel', label: 'Gestion du Personnel', icon:UsersIcon },
+        { id: 'gest-rapport', label: 'Rapport', icon:DockIcon },
+        /* { id: 'close-others', label: 'Close Other Tabs', icon: X },
+        { id: 'close-all', label: 'Close All Tabs', icon: X }, */
+      ];
+    } else if (isSiteTab) {
+      return [
+        { id: 'refresh', label: 'Refresh Site Data', icon: RotateCw },
+        { id: 'export', label: 'Export Site Data', icon: Download },
+        { id: 'duplicate', label: 'Duplicate Tab', icon: Copy },
+        { id: 'close', label: 'Close Tab', icon: X },
+        { id: 'close-others', label: 'Close Other Tabs', icon: X },
+        { id: 'close-right', label: 'Close Tabs to the Right', icon: X },
+      ];
+    } else {
+      return [
+        { id: 'refresh', label: 'Refresh', icon: RotateCw },
+        { id: 'export', label: 'Export Data', icon: Download },
+        { id: 'duplicate', label: 'Duplicate Tab', icon: Copy },
+        { id: 'close', label: 'Close Tab', icon: X },
+        { id: 'close-others', label: 'Close Other Tabs', icon: X },
+        { id: 'close-right', label: 'Close Tabs to the Right', icon: X },
+      ];
+    }
+  };
+
+  const renderIcon = (IconComponent: React.ElementType) => {
+    return <IconComponent className="w-4 h-4" />;
+  };
+
+  const handleAction = (actionId: string) => {
+    switch (actionId) {
+      case 'refresh':
+        handleRefresh();
+        break;
+      case 'export':
+        // Placeholder for export functionality
+        alert(`Exporting data for ${label}`);
+        break;
+      case 'duplicate':
+        // Placeholder for duplicate functionality
+        alert(`Duplicating tab: ${label}`);
+        break;
+      case 'close':
+        onClose && onClose();
+        break;
+      case 'close-others':
+        // Placeholder for close others functionality
+        alert('Closing other tabs');
+        break;
+      case 'close-right':
+        // Placeholder for close right functionality
+        alert('Closing tabs to the right');
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    <ContextMenu.Root>
+      <ContextMenuTrigger>
+        <div
+          onClick={onClick}
+          className={`
+            group relative px-4 py-2 rounded-t-lg text-sm font-medium transition-all duration-300 cursor-pointer
+            flex items-center gap-2
+            ${active
+              ? 'bg-panel-bg text-foreground border-t-2 border-x border-panel-border border-t-primary shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-panel-bg/30 bg-panel-bg/20'
+            }
+          `}
+        >
+          <span>{label}</span>
+          {onClose && !active && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive text-xs"
+            >
+              ×
+            </button>
+          )}
+          {active && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-fade-in" />
+          )}
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-48 bg-panel-bg border border-panel-border shadow-elevated rounded-lg p-1 z-50">
+        {getContextMenuActions().map((action) => (
+          <ContextMenuItem
+            key={action.id}
+            className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer text-white"
+            onClick={() => handleAction(action.id)}
+          >
+            {renderIcon(action.icon)}
+            {action.label}
+          </ContextMenuItem>
+        ))}
+      </ContextMenuContent>
+    </ContextMenu.Root>
+  );
+};
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("all-sites");
@@ -164,16 +282,19 @@ const Index = () => {
 
   const getTabs = () => {
     if (navigationLevel === "all-sites") {
-      return [{ id: "all-sites", label: "All Sites" }];
+      return [
+        { id: "all-sites", label: "Overview" },
+        ...mockSites.map(site => ({ id: site.name.toLowerCase().replace(" ", "-"), label: site.name }))
+      ];
     } else if (navigationLevel === "site-zones") {
       return [
-        { id: "all-sites", label: "All Sites" },
+        { id: "all-sites", label: "Overview" },
         { id: "all-zones", label: `All Zones - ${selectedSite}` },
         ...mockZones.map(zone => ({ id: zone.name.toLowerCase().replace(" ", "-"), label: zone.name }))
       ];
     } else {
       return [
-        { id: "all-sites", label: "All Sites" },
+        { id: "all-sites", label: "Overview" },
         { id: "all-zones", label: `All Zones - ${selectedSite}` },
         ...mockZones.map(zone => ({ id: zone.name.toLowerCase().replace(" ", "-"), label: zone.name }))
       ];
@@ -188,7 +309,7 @@ const Index = () => {
         <div className="flex items-center justify-between px-6 pt-3">
           <div className="flex items-center gap-1">
             {getTabs().map(tab => (
-              <TabButton 
+              <TabButton
                 key={tab.id}
                 id={tab.id}
                 label={tab.label}
@@ -199,6 +320,21 @@ const Index = () => {
                     setNavigationLevel("all-sites");
                     setSelectedSite(null);
                     setSelectedZone(null);
+                  } else {
+                    // Check if this tab corresponds to a specific site
+                    const siteName = mockSites.find(site =>
+                      site.name.toLowerCase().replace(" ", "-") === tab.id
+                    )?.name;
+
+                    if (siteName) {
+                      setSelectedSite(siteName);
+                      setNavigationLevel("site-zones");
+                      // Update history when navigating via tab
+                      const newHistory = navigationHistory.slice(0, historyIndex + 1);
+                      newHistory.push({level: "site-zones", site: siteName});
+                      setNavigationHistory(newHistory);
+                      setHistoryIndex(newHistory.length - 1);
+                    }
                   }
                 }}
               />
@@ -282,13 +418,14 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="p-6 space-y-8 animate-fade-in">
-        {navigationLevel === "all-sites" && (
+        {(navigationLevel === "all-sites" ||
+          mockSites.some(site => site.name.toLowerCase().replace(" ", "-") === activeTab)) && (
           <>
             {/* Top Row */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Panel - Targeted Sites */}
               <div className="lg:col-span-3">
-                <DashboardCard 
+                <DashboardCard
                   title="Targeted Sites"
                   action={
                     <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
@@ -301,7 +438,7 @@ const Index = () => {
                     <div className="flex justify-center">
                       <CircularGauge value={575} max={1000} label="kM" />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Summary</span>
@@ -341,7 +478,7 @@ const Index = () => {
                         <h4 className="text-sm font-semibold text-foreground">Targeted Sites</h4>
                         <span className="text-xs text-muted-foreground">Updated 2min ago</span>
                       </div>
-                      <SitesList />
+                      <SitesList onSiteClick={handleSiteClick} />
                     </div>
                   </div>
                 </DashboardCard>
@@ -350,21 +487,25 @@ const Index = () => {
               {/* Center - Map */}
               <div className="lg:col-span-6">
                 <DashboardCard
-                  title="All Sites Overview"
+                  title={
+                    navigationLevel === "site-zones" && selectedSite
+                      ? `${selectedSite} Overview`
+                      : "All Sites Overview"
+                  }
                   action={
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
-                        Live Map
+                        {navigationLevel === "site-zones" ? "Site Map" : "Live Map"}
                       </Badge>
                       <Badge variant="secondary">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                        4 Active
+                        {navigationLevel === "site-zones" ? "1 Active" : "4 Active"}
                       </Badge>
                     </div>
                   }
                 >
                   <MiningMap />
-                  
+
                   <div className="grid grid-cols-3 gap-4 mt-6">
                     <StatsCard
                       label="Found"
@@ -390,7 +531,7 @@ const Index = () => {
 
               {/* Right Panel - Target Sites Stats */}
               <div className="lg:col-span-3">
-                <DashboardCard 
+                <DashboardCard
                   title="Target Sites"
                   action={
                     <Badge variant="secondary" className="bg-warning/20 text-warning border-warning/30">
@@ -451,7 +592,7 @@ const Index = () => {
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground mb-3">Distribution by category</p>
-                      
+
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div className="text-center">
                           <div className="w-10 h-10 bg-destructive rounded-lg mx-auto mb-2 flex items-center justify-center text-destructive-foreground font-bold text-xs">
@@ -470,6 +611,11 @@ const Index = () => {
                       </div>
 
                       <AllSitesChart />
+
+                      <div className="pt-4 border-t border-panel-border mt-4">
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Sites List</h4>
+                        <SitesList onSiteClick={handleSiteClick} />
+                      </div>
                     </div>
                   </div>
                 </DashboardCard>
@@ -478,41 +624,47 @@ const Index = () => {
 
             {/* All Sites List - Clickable */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {mockSites.map((site) => (
-                <Card 
-                  key={site.id}
-                  onClick={() => handleSiteClick(site.name)}
-                  className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
-                      <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
+              {mockSites.map((site) => {
+                // If we're in site-zones level, only show the selected site
+                if (navigationLevel === "site-zones" && selectedSite && selectedSite !== site.name) {
+                  return null;
+                }
+                return (
+                  <Card
+                    key={site.id}
+                    onClick={() => handleSiteClick(site.name)}
+                    className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
+                        <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
+                      </div>
+                      <Badge className={
+                        site.status === "online"
+                          ? "bg-success/20 text-success border-success/30"
+                          : "bg-warning/20 text-warning border-warning/30"
+                      }>
+                        {site.status}
+                      </Badge>
                     </div>
-                    <Badge className={
-                      site.status === "online" 
-                        ? "bg-success/20 text-success border-success/30" 
-                        : "bg-warning/20 text-warning border-warning/30"
-                    }>
-                      {site.status}
-                    </Badge>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Zones:</span>
-                      <span className="text-foreground font-medium">{site.zones}</span>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Zones:</span>
+                        <span className="text-foreground font-medium">{site.zones}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Production:</span>
+                        <span className="text-foreground font-medium">{site.production}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Efficiency:</span>
+                        <span className="text-foreground font-medium">{site.efficiency}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Production:</span>
-                      <span className="text-foreground font-medium">{site.production}</span>
-                    </div>
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Efficiency:</span>
-                      <span className="text-foreground font-medium">{site.efficiency}</span>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </>
         )}
