@@ -28,9 +28,11 @@ import {
   SettingsIcon,
   HistoryIcon,
 } from "lucide-react";
+import { useState } from "react";
+import { useNavigationView } from "@/context/NavigationViewContext";
 
 const navItems = [
-  { title: "Vue temps reel des operations", url: "/", icon: TimerIcon },
+  { title: "Vue temps reel des operations", url: "", icon: TimerIcon },
   { title: "Gestion des Trajets", url: "/sonics", icon: CarIcon },
   { title: "Gestion des Notifications", url: "/battles", icon: BellIcon },
   { title: "Gestion des Sites", url: "/routes", icon: AreaChart },
@@ -38,13 +40,24 @@ const navItems = [
   { title: "Analyses", url: "/statics", icon: BarChart3 },
   { title: "Historique des Actions", url: "/statics", icon: HistoryIcon },
   { title: "Parametres", url: "/statics", icon: SettingsIcon },
-  
+
 ];
 
 export function MiningSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed";
+  const [activeSidebar, setActiveSidebar] = useState("");
+  const { setActiveView } = useNavigationView();
+
+  const ClickItems = (item) => {
+    setActiveSidebar(item.title);
+
+    // When "Vue temps reel des operations" is clicked, set the active view
+    if (item.title === "Vue temps reel des operations") {
+      setActiveView("realtime-ops");
+    }
+  }
 
   return (
     <Sidebar
@@ -76,6 +89,7 @@ export function MiningSidebar() {
                     <SidebarMenuButton asChild>
                        <NavLink
                         to={item.url}
+                        onClick={() => ClickItems(item)}
                         end
                         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                           isActive

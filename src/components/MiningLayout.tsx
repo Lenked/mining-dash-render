@@ -10,7 +10,7 @@ export function MiningLayout({ children }: MiningLayoutProps) {
   return (
     <SidebarProvider defaultOpen>
       <div className="min-h-screen flex w-full bg-dashboard-bg dark">
-        <MiningSidebar />
+        <MiningSidebar  />
         <main className="flex-1 overflow-auto">
           {children}
         </main>

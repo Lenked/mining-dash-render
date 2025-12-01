@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/context-menu";
 import type { ReactElement, ReactNode } from 'react';
 import { InteractiveMiningMap } from "@/components/dashboard/InteractiveMiningMap";
+import { useNavigationView } from "@/context/NavigationViewContext";
 
 // Mock data
 const mockSites = [
@@ -182,6 +183,15 @@ const TabButton = ({
         // Placeholder for close right functionality
         alert('Closing tabs to the right');
         break;
+      case 'vue-temps-reel':
+        // Handle the real-time operations view
+        setActiveTab("realtime-ops"); // Switch to real-time operations view
+        setNavigationLevel("all-sites");
+        setSelectedSite(null);
+        setSelectedZone(null);
+        setContent("table"); // Show table view for real-time operations
+        setActiveFleetFilter('all'); // Set 'all' filter by default
+        break;
       default:
         break;
     }
@@ -235,7 +245,8 @@ const TabButton = ({
 };
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("all-sites");
+  const { activeView } = useNavigationView();
+  const [activeTab, setActiveTab] = useState<"all-sites" | "realtime-ops">("all-sites");
   const [searchQuery, setSearchQuery] = useState("");
   const [navigationLevel, setNavigationLevel] = useState<NavigationLevel>("all-sites");
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
@@ -244,17 +255,35 @@ const Index = () => {
   const [historyIndex, setHistoryIndex] = useState(0);
   const [activeFleetFilter, setActiveFleetFilter] = useState<'all' | 'truck' | 'trailer'>('all');
   const [showFleetData, setShowFleetData] = useState(false);
-  const [modalOpen, setModalOpen] = useState(true);
+  const [content, setContent] = useState<'stat' | 'table'>("stat");
+  const [hideSubHeader, setHideSubHeader] = useState(false)
 
   // Set showFleetData to true when on Overview tab with 'all' filter by default
   useEffect(() => {
-    if (activeTab === "all-sites" && activeFleetFilter === 'all') {
+    if ((activeTab === "all-sites" || activeTab === "realtime-ops") && activeFleetFilter === 'all') {
       setShowFleetData(true);
     } else {
       // Hide fleet data if not on Overview tab or not on 'all' filter
       setShowFleetData(false);
     }
   }, [activeTab, activeFleetFilter]);
+
+  // Effect to handle navigation view changes from the sidebar
+  useEffect(() => {
+    if (activeView === 'realtime-ops') {
+      setActiveTab("all-sites");
+      setNavigationLevel("all-sites");
+      setHideSubHeader(true)
+      setSelectedSite(null);
+      setSelectedZone(null);
+      setContent("table"); // Show table view for real-time operations
+      setActiveFleetFilter('all'); // Set 'all' filter by default
+    } else {
+      // Reset to default dashboard view
+      setActiveTab("all-sites");
+      setContent("stat");
+    }
+  }, [activeView]);
 
   const handleSiteClick = (siteName: string) => {
     setSelectedSite(siteName);
@@ -335,17 +364,20 @@ const Index = () => {
     if (navigationLevel === "all-sites") {
       return [
         { id: "all-sites", label: "Overview" },
+        // { id: "realtime-ops", label: "Vue Temps Réel" }, // Add the real-time operations tab
         ...mockSites.map(site => ({ id: site.name.toLowerCase().replace(" ", "-"), label: site.name }))
       ];
     } else if (navigationLevel === "site-zones") {
       return [
         { id: "all-sites", label: "Overview" },
+        // { id: "realtime-ops", label: "Vue Temps Réel" }, // Add the real-time operations tab
         { id: "all-zones", label: `All Zones - ${selectedSite}` },
         ...mockZones.map(zone => ({ id: zone.name.toLowerCase().replace(" ", "-"), label: zone.name }))
       ];
     } else {
       return [
         { id: "all-sites", label: "Overview" },
+        // { id: "realtime-ops", label: "Vue Temps Réel" }, // Add the real-time operations tab
         { id: "all-zones", label: `All Zones - ${selectedSite}` },
         ...mockZones.map(zone => ({ id: zone.name.toLowerCase().replace(" ", "-"), label: zone.name }))
       ];
@@ -353,7 +385,7 @@ const Index = () => {
   };
 
   return (
-    <MiningLayout>
+    <MiningLayout >
       {/* Header */}
       <header className="bg-secondary border-b border-panel-border shadow-elevated">
         {/* Tabs Navigation */}
@@ -372,6 +404,14 @@ const Index = () => {
                     setSelectedSite(null);
                     setSelectedZone(null);
                     setShowFleetData(false); // Réinitialiser l'affichage de la flotte
+                    setContent("stat"); // Show dashboard view for normal overview
+                  } else if (tab.id === "realtime-ops") {
+                    // For the real-time operations tab, show fleet management view
+                    setNavigationLevel("all-sites");
+                    setSelectedSite(null);
+                    setSelectedZone(null);
+                    setContent("table"); // Show table view for real-time operations
+                    setActiveFleetFilter('all'); // Set the 'all' filter by default
                   } else {
                     // Check if this tab corresponds to a specific site
                     const siteName = mockSites.find(site =>
@@ -402,8 +442,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Barre de filtre pour la flotte de véhicules */}
-        {activeTab === "all-sites" && (
+        {/* Barre de filtre pour la flotte de véhicules - visible when viewing real-time operations */}
+        {content === "table" && (
           <div className="flex items-center justify-start px-6 py-3 border-b border-panel-border/50 bg-background/50">
             <div className="flex items-center space-x-2 bg-panel-bg p-1 rounded-full border border-panel-border shadow-sm">
               <button
@@ -414,7 +454,7 @@ const Index = () => {
                 }`}
                 onClick={() => {
                   setActiveFleetFilter('all');
-                  setModalOpen(true);  // Show fleet data in main content
+                  setContent("table")
                 }}
               >
                 Tous
@@ -427,7 +467,7 @@ const Index = () => {
                 }`}
                 onClick={() => {
                   setActiveFleetFilter('truck');
-                  setModalOpen(true);  // Show fleet data in main content
+                  setContent("table")
                 }}
               >
                 Camion
@@ -440,7 +480,7 @@ const Index = () => {
                 }`}
                 onClick={() => {
                   setActiveFleetFilter('trailer');
-                  setModalOpen(true);  // Show fleet data in main content
+                  setContent("table")
                 }}
               >
                 Remorque
@@ -450,334 +490,339 @@ const Index = () => {
         )}
 
         {/* Search and Actions Bar */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-panel-border/50">
-          {/* Left - Navigation Buttons */}
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleBack}
-              disabled={historyIndex === 0}
-              className="hover:bg-accent/10 disabled:opacity-30 transition-all hover:scale-105 disabled:hover:scale-100"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleForward}
-              disabled={historyIndex === navigationHistory.length - 1}
-              className="hover:bg-accent/10 disabled:opacity-30 transition-all hover:scale-105 disabled:hover:scale-100"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleRefresh}
-              className="hover:bg-accent/10 transition-all hover:scale-105 hover:rotate-180"
-            >
-              <RotateCw className="w-4 h-4" />
-            </Button>
-          </div>
+       {!hideSubHeader ? (
+         <div className="flex items-center justify-between px-6 py-3 border-t border-panel-border/50">
+         {/* Left - Navigation Buttons */}
+         <div className="flex items-center gap-2">
+           <Button 
+             variant="ghost" 
+             size="sm" 
+             onClick={handleBack}
+             disabled={historyIndex === 0}
+             className="hover:bg-accent/10 disabled:opacity-30 transition-all hover:scale-105 disabled:hover:scale-100"
+           >
+             <ChevronLeft className="w-4 h-4" />
+           </Button>
+           <Button 
+             variant="ghost" 
+             size="sm" 
+             onClick={handleForward}
+             disabled={historyIndex === navigationHistory.length - 1}
+             className="hover:bg-accent/10 disabled:opacity-30 transition-all hover:scale-105 disabled:hover:scale-100"
+           >
+             <ChevronRight className="w-4 h-4" />
+           </Button>
+           <Button 
+             variant="ghost" 
+             size="sm" 
+             onClick={handleRefresh}
+             className="hover:bg-accent/10 transition-all hover:scale-105 hover:rotate-180"
+           >
+             <RotateCw className="w-4 h-4" />
+           </Button>
+         </div>
 
-          {/* Center - Search */}
-          <div className="flex-1 flex justify-center max-w-2xl mx-6">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search sites, zones, equipment..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-panel-bg border border-panel-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-              />
-            </div>
-          </div>
-        
-          {/* Right - User Actions */}
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:scale-110 transition-all">
-                <Bell className="w-5 h-5 text-foreground" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full border-2 border-secondary animate-pulse"></span>
-              </Button>
-            </div>
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:scale-110 transition-all">
-              <Settings className="w-5 h-5 text-foreground" />
-            </Button>
-            <div className="relative group">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center cursor-pointer ring-2 ring-transparent hover:ring-primary/50 transition-all hover:scale-110">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-status-online rounded-full border-2 border-secondary animate-pulse"></span>
-            </div>
-          </div>
-        </div>
+         {/* Center - Search */}
+         <div className="flex-1 flex justify-center max-w-2xl mx-6">
+           <div className="relative w-full">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+             <input
+               type="text"
+               placeholder="Search sites, zones, equipment..."
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="w-full pl-10 pr-4 py-2 bg-panel-bg border border-panel-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+             />
+           </div>
+         </div>
+       
+         {/* Right - User Actions */}
+         <div className="flex items-center gap-4">
+           <div className="relative">
+             <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:scale-110 transition-all">
+               <Bell className="w-5 h-5 text-foreground" />
+               <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full border-2 border-secondary animate-pulse"></span>
+             </Button>
+           </div>
+           <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:scale-110 transition-all">
+             <Settings className="w-5 h-5 text-foreground" />
+           </Button>
+           <div className="relative group">
+             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center cursor-pointer ring-2 ring-transparent hover:ring-primary/50 transition-all hover:scale-110">
+               <User className="w-5 h-5 text-white" />
+             </div>
+             <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-status-online rounded-full border-2 border-secondary animate-pulse"></span>
+           </div>
+         </div>
+       </div>
+       ) : null}
       </header>
 
       {/* Main Content */}
       <div className="p-6 space-y-8 animate-fade-in">
-        {(navigationLevel === "all-sites" ||
-          mockSites.some(site => site.name.toLowerCase().replace(" ", "-") === activeTab)) && (
-          <>
-            {/* Top Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-              <div className="lg:col-span-9">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    {/* Left Panel - Targeted Sites */}
-              <div className="lg:col-span-4">
-                <DashboardCard
-                  title="Targeted Sites"
-                  action={
-                    <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Online
-                    </Badge>
-                  }
-                >
-                  <div className="space-y-6">
-                    <div className="flex justify-center">
-                      <CircularGauge value={575} max={1000} label="kM" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Summary</span>
-                        <span className="font-semibold text-foreground">513.500</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Trends</p>
-                          <div className="h-12 flex items-end gap-1">
-                            {[40, 60, 45, 70, 55, 65, 80, 75].map((h, i) => (
-                              <div
-                                key={i}
-                                className="flex-1 bg-accent rounded-t transition-all hover:bg-primary"
-                                style={{ height: `${h}%` }}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Centre</p>
-                          <p className="text-sm">
-                            <span className="font-semibold text-foreground">84</span>
-                            <span className="text-muted-foreground"> ∨</span>
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Basili/Villag
-                          </p>
-                          <p className="text-xs">
-                            <span className="text-foreground">Fiyile</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-panel-border">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-foreground">Targeted Sites</h4>
-                        <span className="text-xs text-muted-foreground">Updated 2min ago</span>
-                      </div>
-                      <SitesList onSiteClick={handleSiteClick} />
-                    </div>
-                  </div>
-                </DashboardCard>
-              </div>
-
-              {/* Center - Map */}
-              <div className="lg:col-span-8">
-                <DashboardCard
-                  title={
-                    navigationLevel === "site-zones" && selectedSite
-                      ? `${selectedSite} Overview`
-                      : "All Sites Overview"
-                  }
-                  action={
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
-                        {navigationLevel === "site-zones" ? "Site Map" : "Live Map"}
-                      </Badge>
-                      <Badge variant="secondary">
+        {
+          content === "stat" ? (navigationLevel === "all-sites" ||
+            mockSites.some(site => site.name.toLowerCase().replace(" ", "-") === activeTab)) && (
+            <>
+              {/* Top Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  
+                <div className="lg:col-span-9">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                      {/* Left Panel - Targeted Sites */}
+                <div className="lg:col-span-4">
+                  <DashboardCard
+                    title="Targeted Sites"
+                    action={
+                      <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                        {navigationLevel === "site-zones" ? "1 Active" : "4 Active"}
+                        Online
                       </Badge>
-                    </div>
-                  }
-                >
-                  <InteractiveMiningMap />
-
-                  <div className="grid grid-cols-3 gap-4 mt-6">
-                    <StatsCard
-                      label="Found"
-                      value="86.6%"
-                      icon={<Activity className="w-6 h-6 text-white" />}
-                      iconBg="hsl(var(--success))"
-                    />
-                    <StatsCard
-                      label="Reuyertia"
-                      value="2"
-                      icon={<TrendingUp className="w-6 h-6 text-white" />}
-                      iconBg="hsl(var(--chart-primary))"
-                    />
-                    <StatsCard
-                      label="Fleneling"
-                      value="189%"
-                      icon={<BarChart3 className="w-6 h-6 text-white" />}
-                      iconBg="hsl(var(--accent))"
-                    />
-                  </div>
-                </DashboardCard>
-              </div>
-                  <div className="lg:col-span-12">
-                     {/* All Sites List - Clickable */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {mockSites.map((site) => {
-                // If we're in site-zones level, only show the selected site
-                if (navigationLevel === "site-zones" && selectedSite && selectedSite !== site.name) {
-                  return null;
-                }
-                return (
-                  <Card
-                    key={site.id}
-                    onClick={() => handleSiteClick(site.name)}
-                    className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
+                    }
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
-                        <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
+                    <div className="space-y-6">
+                      <div className="flex justify-center">
+                        <CircularGauge value={575} max={1000} label="kM" />
                       </div>
-                      <Badge className={
-                        site.status === "online"
-                          ? "bg-success/20 text-success border-success/30"
-                          : "bg-warning/20 text-warning border-warning/30"
-                      }>
-                        {site.status}
-                      </Badge>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Zones:</span>
-                        <span className="text-foreground font-medium">{site.zones}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Production:</span>
-                        <span className="text-foreground font-medium">{site.production}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Efficiency:</span>
-                        <span className="text-foreground font-medium">{site.efficiency}</span>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-                  </div>
-                </div>
-              </div>
-            
-
-              {/* Right Panel - Target Sites Stats */}
-              <div className="lg:col-span-3">
-                <DashboardCard
-                  title="Target Sites"
-                  action={
-                    <Badge variant="secondary" className="bg-warning/20 text-warning border-warning/30">
-                      <Activity className="w-3 h-3 mr-1" />
-                      Monitoring
-                    </Badge>
-                  }
-                >
-                  <div className="space-y-6">
-                    <div className="flex justify-center">
-                      <CircularGauge value={575} max={1000} label="kM" color="hsl(var(--chart-secondary))" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Summary</span>
-                        <span className="font-semibold text-foreground">513.500</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Trends</p>
-                          <div className="h-12 flex items-end gap-1">
-                            {[50, 70, 55, 80, 65, 75, 90, 85].map((h, i) => (
-                              <div
-                                key={i}
-                                className="flex-1 bg-chart-secondary rounded-t transition-all hover:bg-primary"
-                                style={{ height: `${h}%` }}
-                              />
-                            ))}
+  
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Summary</span>
+                          <span className="font-semibold text-foreground">513.500</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Trends</p>
+                            <div className="h-12 flex items-end gap-1">
+                              {[40, 60, 45, 70, 55, 65, 80, 75].map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="flex-1 bg-accent rounded-t transition-all hover:bg-primary"
+                                  style={{ height: `${h}%` }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Centre</p>
+                            <p className="text-sm">
+                              <span className="font-semibold text-foreground">84</span>
+                              <span className="text-muted-foreground"> ∨</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Basili/Villag
+                            </p>
+                            <p className="text-xs">
+                              <span className="text-foreground">Fiyile</span>
+                            </p>
                           </div>
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Centre</p>
-                          <p className="text-sm">
-                            <span className="font-semibold text-foreground">84</span>
-                            <span className="text-muted-foreground"> ∨</span>
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Basili/Villag
-                          </p>
-                          <p className="text-xs">
-                            <span className="text-foreground">Fiyile</span>
-                          </p>
-                        </div>
                       </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-panel-border">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-foreground">All Sites</h4>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
-                            Contives
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
-                            Sink
-                          </Button>
+  
+                      <div className="pt-4 border-t border-panel-border">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-foreground">Targeted Sites</h4>
+                          <span className="text-xs text-muted-foreground">Updated 2min ago</span>
                         </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-3">Distribution by category</p>
-
-                      <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="text-center">
-                          <div className="w-10 h-10 bg-destructive rounded-lg mx-auto mb-2 flex items-center justify-center text-destructive-foreground font-bold text-xs">
-                            15410
-                          </div>
-                          <p className="text-xs text-muted-foreground">75</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-sm text-muted-foreground mb-1">1766</p>
-                          <p className="text-lg font-bold text-foreground">45150</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground mb-1">60</p>
-                          <p className="text-xs text-foreground">33</p>
-                        </div>
-                      </div>
-
-                      <AllSitesChart />
-
-                      <div className="pt-4 border-t border-panel-border mt-4">
-                        <h4 className="text-sm font-semibold text-foreground mb-3">Sites List</h4>
                         <SitesList onSiteClick={handleSiteClick} />
                       </div>
                     </div>
-                  </div>
-                </DashboardCard>
+                  </DashboardCard>
+                </div>
+  
+                {/* Center - Map */}
+                <div className="lg:col-span-8">
+                  <DashboardCard
+                    title={
+                      navigationLevel === "site-zones" && selectedSite
+                        ? `${selectedSite} Overview`
+                        : "All Sites Overview"
+                    }
+                    action={
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+                          {navigationLevel === "site-zones" ? "Site Map" : "Live Map"}
+                        </Badge>
+                        <Badge variant="secondary">
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          {navigationLevel === "site-zones" ? "1 Active" : "4 Active"}
+                        </Badge>
+                      </div>
+                    }
+                  >
+                    <InteractiveMiningMap />
+  
+                    <div className="grid grid-cols-3 gap-4 mt-6">
+                      <StatsCard
+                        label="Found"
+                        value="86.6%"
+                        icon={<Activity className="w-6 h-6 text-white" />}
+                        iconBg="hsl(var(--success))"
+                      />
+                      <StatsCard
+                        label="Reuyertia"
+                        value="2"
+                        icon={<TrendingUp className="w-6 h-6 text-white" />}
+                        iconBg="hsl(var(--chart-primary))"
+                      />
+                      <StatsCard
+                        label="Fleneling"
+                        value="189%"
+                        icon={<BarChart3 className="w-6 h-6 text-white" />}
+                        iconBg="hsl(var(--accent))"
+                      />
+                    </div>
+                  </DashboardCard>
+                </div>
+                    <div className="lg:col-span-12">
+                       {/* All Sites List - Clickable */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {mockSites.map((site) => {
+                  // If we're in site-zones level, only show the selected site
+                  if (navigationLevel === "site-zones" && selectedSite && selectedSite !== site.name) {
+                    return null;
+                  }
+                  return (
+                    <Card
+                      key={site.id}
+                      onClick={() => handleSiteClick(site.name)}
+                      className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
+                          <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
+                        </div>
+                        <Badge className={
+                          site.status === "online"
+                            ? "bg-success/20 text-success border-success/30"
+                            : "bg-warning/20 text-warning border-warning/30"
+                        }>
+                          {site.status}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Zones:</span>
+                          <span className="text-foreground font-medium">{site.zones}</span>
+                        </div>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Production:</span>
+                          <span className="text-foreground font-medium">{site.production}</span>
+                        </div>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Efficiency:</span>
+                          <span className="text-foreground font-medium">{site.efficiency}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
               </div>
-            </div>
-
-           
-
-          </>
-        )}
+                    </div>
+                  </div>
+                </div>
+              
+  
+                {/* Right Panel - Target Sites Stats */}
+                <div className="lg:col-span-3">
+                  <DashboardCard
+                    title="Target Sites"
+                    action={
+                      <Badge variant="secondary" className="bg-warning/20 text-warning border-warning/30">
+                        <Activity className="w-3 h-3 mr-1" />
+                        Monitoring
+                      </Badge>
+                    }
+                  >
+                    <div className="space-y-6">
+                      <div className="flex justify-center">
+                        <CircularGauge value={575} max={1000} label="kM" color="hsl(var(--chart-secondary))" />
+                      </div>
+  
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Summary</span>
+                          <span className="font-semibold text-foreground">513.500</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Trends</p>
+                            <div className="h-12 flex items-end gap-1">
+                              {[50, 70, 55, 80, 65, 75, 90, 85].map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="flex-1 bg-chart-secondary rounded-t transition-all hover:bg-primary"
+                                  style={{ height: `${h}%` }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Centre</p>
+                            <p className="text-sm">
+                              <span className="font-semibold text-foreground">84</span>
+                              <span className="text-muted-foreground"> ∨</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Basili/Villag
+                            </p>
+                            <p className="text-xs">
+                              <span className="text-foreground">Fiyile</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+  
+                      <div className="pt-4 border-t border-panel-border">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-foreground">All Sites</h4>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
+                              Contives
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
+                              Sink
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3">Distribution by category</p>
+  
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="w-10 h-10 bg-destructive rounded-lg mx-auto mb-2 flex items-center justify-center text-destructive-foreground font-bold text-xs">
+                              15410
+                            </div>
+                            <p className="text-xs text-muted-foreground">75</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-muted-foreground mb-1">1766</p>
+                            <p className="text-lg font-bold text-foreground">45150</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">60</p>
+                            <p className="text-xs text-foreground">33</p>
+                          </div>
+                        </div>
+  
+                        <AllSitesChart />
+  
+                        <div className="pt-4 border-t border-panel-border mt-4">
+                          <h4 className="text-sm font-semibold text-foreground mb-3">Sites List</h4>
+                          <SitesList onSiteClick={handleSiteClick} />
+                        </div>
+                      </div>
+                    </div>
+                  </DashboardCard>
+                </div>
+              </div>
+  
+             
+  
+            </>
+          ) : null
+        }
+        
 
         {navigationLevel === "site-zones" && selectedSite && (
           <>
@@ -995,7 +1040,7 @@ const Index = () => {
         )}
 
         {/* Fleet Data Table - Displayed when showFleetData is true */}
-        {showFleetData && activeTab === "all-sites" && (
+        {showFleetData && (activeTab === "all-sites" || activeTab === "realtime-ops") && content === "table" && (
           <div className="mt-8">
             <div className="bg-panel-bg border border-panel-border rounded-xl shadow-elevated p-6">
               <div className="flex items-center justify-between mb-6">
@@ -1074,12 +1119,12 @@ const Index = () => {
                 <table className="w-full">
                   <thead className="bg-secondary/30">
                     <tr>
-                      <th className="py-3 px-4 text-left">Véhicule</th>
-                      <th className="py-3 px-4 text-left">Catégorie</th>
-                      <th className="py-3 px-4 text-left">Statut</th>
-                      <th className="py-3 px-4 text-left">Site</th>
-                      <th className="py-3 px-4 text-left">Capacité</th>
-                      <th className="py-3 px-4 text-left">Dernière mise à jour</th>
+                      <th className="py-3 px-4 text-left text-white">Véhicule</th>
+                      <th className="py-3 px-4 text-left text-white">Catégorie</th>
+                      <th className="py-3 px-4 text-left text-white">Statut</th>
+                      <th className="py-3 px-4 text-left text-white">Site</th>
+                      <th className="py-3 px-4 text-left text-white">Capacité</th>
+                      <th className="py-3 px-4 text-left text-white">Dernière mise à jour</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1087,17 +1132,17 @@ const Index = () => {
                       <tr key={vehicle.id} className="border-t border-panel-border/50 hover:bg-secondary/20 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-secondary rounded-lg">
-                              {vehicle.type === 'truck' ? (
-                                <Car className="w-5 h-5 text-primary" />
+                          {vehicle.type === 'truck' ? (
+                                // <Car className="w-5 h-5 text-primary" />
+                                <img className="w-10 h-10 text-primary" src="/truck.png" alt="" />
                               ) : (
-                                <Truck className="w-5 h-5 text-accent" />
+                                // <Truck className="w-5 h-5 text-accent" />
+                                <img className="w-10 h-10 text-primary" src="/van.png" alt="" />
                               )}
-                            </div>
-                            <span className="font-medium">{vehicle.id}</span>
+                            <span className="font-medium text-white">{vehicle.id}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-4 capitalize">
+                        <td className="py-3 px-4 capitalize text-white">
                           {vehicle.type === 'truck' ? 'Camion' : 'Remorque'}
                         </td>
                         <td className="py-3 px-4">
@@ -1116,8 +1161,8 @@ const Index = () => {
                             {vehicle.status === 'inactive' && 'Inactif'}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4">{vehicle.site}</td>
-                        <td className="py-3 px-4">{vehicle.capacity}</td>
+                        <td className="py-3 px-4 text-white">{vehicle.site}</td>
+                        <td className="py-3 px-4 text-white">{vehicle.capacity}</td>
                         <td className="py-3 px-4 text-muted-foreground">{vehicle.lastUpdate}</td>
                       </tr>
                     ))}
