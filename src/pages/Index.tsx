@@ -46,6 +46,7 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import type { ReactElement, ReactNode } from 'react';
+import { InteractiveMiningMap } from "@/components/dashboard/InteractiveMiningMap";
 
 // Mock data
 const mockSites = [
@@ -504,7 +505,7 @@ const Index = () => {
                     </div>
                   }
                 >
-                  <MiningMap />
+                  <InteractiveMiningMap />
 
                   <div className="grid grid-cols-3 gap-4 mt-6">
                     <StatsCard
@@ -705,7 +706,7 @@ const Index = () => {
                     </Badge>
                   }
                 >
-                  <MiningMap />
+                  <InteractiveMiningMap />
                   
                   <div className="grid grid-cols-3 gap-4 mt-6">
                     <StatsCard
