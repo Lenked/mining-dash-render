@@ -61,9 +61,10 @@ const mockSites = [
 ];
 
 const mockZones = [
-  { id: 1, name: "Zone A", status: "active", equipment: 12, area: "45 ha" },
-  { id: 2, name: "Zone B", status: "active", equipment: 8, area: "32 ha" },
-  { id: 3, name: "Zone C", status: "maintenance", equipment: 15, area: "67 ha" },
+  { id: 1, name: "Overview", status: "active", equipment: 12, area: "45 ha" },
+  { id: 2, name: "Zone A", status: "active", equipment: 12, area: "45 ha" },
+  { id: 3, name: "Zone B", status: "active", equipment: 8, area: "32 ha" },
+  { id: 4, name: "Zone C", status: "maintenance", equipment: 15, area: "67 ha" },
 ];
 
 // Données de la flotte de véhicules
@@ -309,6 +310,8 @@ const Index = () => {
     newHistory.push({level: "zone-detail", site: selectedSite, zone: zoneName});
     setNavigationHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
+    // Show table view when clicking on a zone
+    setContent("table");
   };
 
   const handleBack = () => {
@@ -319,19 +322,24 @@ const Index = () => {
       setNavigationLevel(historyItem.level);
       setSelectedSite(historyItem.site || null);
       setSelectedZone(historyItem.zone || null);
+
+      // Restore content based on navigation level
       if (historyItem.level === "all-sites") {
         setActiveTab("all-sites");
         setShowFleetData(false); // Réinitialiser l'affichage de la flotte
+        setContent("stat"); // Set to stats view for all sites
       } else if (historyItem.level === "site-zones") {
         // Find the site tab that should be active
         if (historyItem.site) {
           setActiveTab(historyItem.site.toLowerCase().replace(" ", "-"));
         }
+        setContent("stat"); // Set to stats view when returning to site-zones
       } else {
         // When going back from zone detail, go back to site-zones view
         if (historyItem.site) {
           setActiveTab(historyItem.site.toLowerCase().replace(" ", "-"));
         }
+        setContent("table"); // Show table view for zone-detail level
       }
     }
   };
@@ -344,19 +352,24 @@ const Index = () => {
       setNavigationLevel(historyItem.level);
       setSelectedSite(historyItem.site || null);
       setSelectedZone(historyItem.zone || null);
+
+      // Set content based on navigation level
       if (historyItem.level === "all-sites") {
         setActiveTab("all-sites");
         setShowFleetData(false); // Réinitialiser l'affichage de la flotte
+        setContent("stat"); // Set to stats view for all sites
       } else if (historyItem.level === "site-zones") {
         // Find the site tab that should be active
         if (historyItem.site) {
           setActiveTab(historyItem.site.toLowerCase().replace(" ", "-"));
         }
+        setContent("stat"); // Set to stats view when going to site-zones
       } else {
         // When going forward to zone detail, keep the site tab active
         if (historyItem.site) {
           setActiveTab(historyItem.site.toLowerCase().replace(" ", "-"));
         }
+        setContent("table"); // Show table view for zone-detail level
       }
     }
   };
@@ -461,7 +474,7 @@ const Index = () => {
                 <button
                   key={zone.id}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                    selectedZone === zone.name
+                    (selectedZone ? selectedZone === zone.name : zone.id === 1)
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
@@ -474,8 +487,8 @@ const Index = () => {
           </div>
         )}
 
-        {/* Barre de filtre pour la flotte de véhicules - visible only in real-time operations view */}
-        {content === "table" && activeTab === "all-sites" && (
+        {/* Barre de filtre pour la flotte de véhicules - visible in real-time operations view and when viewing zone details */}
+        {content === "table" && (activeTab === "all-sites" || selectedZone) && (
           <div className="flex items-center justify-start px-6 py-3 border-b border-panel-border/50 bg-background/50">
             <div className="flex items-center space-x-2 bg-panel-bg p-1 rounded-full border border-panel-border shadow-sm">
               <button
@@ -860,26 +873,66 @@ const Index = () => {
           <>
             {/* Site Zones View */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/** CHECKPOINT */}
               {/* Left Panel */}
               <div className="lg:col-span-3">
-                <DashboardCard 
-                  title="All Zones Overview"
-                  action={
-                    <Badge variant="secondary" className="bg-accent/20 text-accent-foreground border-accent/30">
-                      {mockZones.length} Zones
-                    </Badge>
-                  }
-                >
-                  <div className="space-y-4">
-                    <div className="flex justify-center">
-                      <CircularGauge value={78} max={100} label="%" />
+              <DashboardCard
+                    title="Targeted Sites"
+                    action={
+                      <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Online
+                      </Badge>
+                    }
+                  >
+                    <div className="space-y-6">
+                      <div className="flex justify-center">
+                        <CircularGauge value={575} max={1000} label="kM" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Summary</span>
+                          <span className="font-semibold text-foreground">513.500</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Trends</p>
+                            <div className="h-12 flex items-end gap-1">
+                              {[40, 60, 45, 70, 55, 65, 80, 75].map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="flex-1 bg-accent rounded-t transition-all hover:bg-primary"
+                                  style={{ height: `${h}%` }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Centre</p>
+                            <p className="text-sm">
+                              <span className="font-semibold text-foreground">84</span>
+                              <span className="text-muted-foreground"> ∨</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Basili/Villag
+                            </p>
+                            <p className="text-xs">
+                              <span className="text-foreground">Fiyile</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-panel-border">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-foreground">Targeted Sites</h4>
+                          <span className="text-xs text-muted-foreground">Updated 2min ago</span>
+                        </div>
+                        <SitesList onSiteClick={handleSiteClick} />
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Site Efficiency</p>
-                      <p className="text-2xl font-bold text-foreground mt-1">{selectedSite}</p>
-                    </div>
-                  </div>
-                </DashboardCard>
+                  </DashboardCard>
               </div>
 
               {/* Center - Zones Map */}
@@ -920,33 +973,95 @@ const Index = () => {
 
               {/* Right Panel */}
               <div className="lg:col-span-3">
-                <DashboardCard 
-                  title="Zone Stats"
-                  action={
-                    <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
-                      Active
-                    </Badge>
-                  }
-                >
-                  <div className="space-y-4">
-                    {mockZones.map((zone) => (
-                      <div 
-                        key={zone.id}
-                        className="p-3 rounded-lg bg-secondary/30 border border-panel-border hover:border-primary/50 transition-all cursor-pointer"
-                      >
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-foreground">{zone.name}</span>
-                          <Badge className={zone.status === "active" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"}>
-                            {zone.status}
-                          </Badge>
+                
+              <DashboardCard
+                    title="Target Sites"
+                    action={
+                      <Badge variant="secondary" className="bg-warning/20 text-warning border-warning/30">
+                        <Activity className="w-3 h-3 mr-1" />
+                        Monitoring
+                      </Badge>
+                    }
+                  >
+                    <div className="space-y-6">
+                      <div className="flex justify-center">
+                        <CircularGauge value={575} max={1000} label="kM" color="hsl(var(--chart-secondary))" />
+                      </div>
+  
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Summary</span>
+                          <span className="font-semibold text-foreground">513.500</span>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Equipment: {zone.equipment} | Area: {zone.area}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Trends</p>
+                            <div className="h-12 flex items-end gap-1">
+                              {[50, 70, 55, 80, 65, 75, 90, 85].map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="flex-1 bg-chart-secondary rounded-t transition-all hover:bg-primary"
+                                  style={{ height: `${h}%` }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Centre</p>
+                            <p className="text-sm">
+                              <span className="font-semibold text-foreground">84</span>
+                              <span className="text-muted-foreground"> ∨</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Basili/Villag
+                            </p>
+                            <p className="text-xs">
+                              <span className="text-foreground">Fiyile</span>
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </DashboardCard>
+  
+                      <div className="pt-4 border-t border-panel-border">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-foreground">All Sites</h4>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
+                              Contives
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
+                              Sink
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3">Distribution by category</p>
+  
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="w-10 h-10 bg-destructive rounded-lg mx-auto mb-2 flex items-center justify-center text-destructive-foreground font-bold text-xs">
+                              15410
+                            </div>
+                            <p className="text-xs text-muted-foreground">75</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-muted-foreground mb-1">1766</p>
+                            <p className="text-lg font-bold text-foreground">45150</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">60</p>
+                            <p className="text-xs text-foreground">33</p>
+                          </div>
+                        </div>
+  
+                        <AllSitesChart />
+  
+                        <div className="pt-4 border-t border-panel-border mt-4">
+                          <h4 className="text-sm font-semibold text-foreground mb-3">Sites List</h4>
+                          <SitesList onSiteClick={handleSiteClick} />
+                        </div>
+                      </div>
+                    </div>
+                  </DashboardCard>
               </div>
             </div>
 
@@ -1145,10 +1260,10 @@ const Index = () => {
 
                 {/* Right Panel - Zone Stats */}
                 <div className="lg:col-span-3">
-                  <DashboardCard
-                    title="Zone Statistics"
+                <DashboardCard
+                    title="Target Sites"
                     action={
-                      <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
+                      <Badge variant="secondary" className="bg-warning/20 text-warning border-warning/30">
                         <Activity className="w-3 h-3 mr-1" />
                         Monitoring
                       </Badge>
@@ -1156,62 +1271,79 @@ const Index = () => {
                   >
                     <div className="space-y-6">
                       <div className="flex justify-center">
-                        <CircularGauge value={94} max={100} label="%" color="hsl(var(--success))" />
+                        <CircularGauge value={575} max={1000} label="kM" color="hsl(var(--chart-secondary))" />
                       </div>
-
+  
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Efficiency</span>
-                          <span className="font-semibold text-foreground">94%</span>
+                          <span className="text-muted-foreground">Summary</span>
+                          <span className="font-semibold text-foreground">513.500</span>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-xs text-muted-foreground">Daily Output</p>
+                            <p className="text-xs text-muted-foreground">Trends</p>
                             <div className="h-12 flex items-end gap-1">
-                              {[60, 70, 55, 80, 65, 75, 90, 85].map((h, i) => (
+                              {[50, 70, 55, 80, 65, 75, 90, 85].map((h, i) => (
                                 <div
                                   key={i}
-                                  className="flex-1 bg-success rounded-t transition-all hover:bg-success/80"
+                                  className="flex-1 bg-chart-secondary rounded-t transition-all hover:bg-primary"
                                   style={{ height: `${h}%` }}
                                 />
                               ))}
                             </div>
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground">Performance</p>
+                            <p className="text-xs text-muted-foreground">Centre</p>
                             <p className="text-sm">
-                              <span className="font-semibold text-success">+12%</span>
-                              <span className="text-muted-foreground"> vs yesterday</span>
+                              <span className="font-semibold text-foreground">84</span>
+                              <span className="text-muted-foreground"> ∨</span>
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Target: 90%
+                              Basili/Villag
+                            </p>
+                            <p className="text-xs">
+                              <span className="text-foreground">Fiyile</span>
                             </p>
                           </div>
                         </div>
                       </div>
-
+  
                       <div className="pt-4 border-t border-panel-border">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-semibold text-foreground">Zone Details</h4>
+                          <h4 className="text-sm font-semibold text-foreground">All Sites</h4>
                           <div className="flex gap-2">
                             <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
-                              Export
+                              Contives
                             </Button>
                             <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
-                              Alerts
+                              Sink
                             </Button>
                           </div>
                         </div>
-
-                        <div className="space-y-3">
-                          <div className="p-3 rounded-lg bg-warning/10 border border-warning/30">
-                            <p className="text-sm font-medium text-foreground mb-1">Maintenance Due</p>
-                            <p className="text-xs text-muted-foreground">Equipment #3 requires service</p>
+                        <p className="text-xs text-muted-foreground mb-3">Distribution by category</p>
+  
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          <div className="text-center">
+                            <div className="w-10 h-10 bg-destructive rounded-lg mx-auto mb-2 flex items-center justify-center text-destructive-foreground font-bold text-xs">
+                              15410
+                            </div>
+                            <p className="text-xs text-muted-foreground">75</p>
                           </div>
-                          <div className="p-3 rounded-lg bg-success/10 border border-success/30">
-                            <p className="text-sm font-medium text-foreground mb-1">All Clear</p>
-                            <p className="text-xs text-muted-foreground">No critical issues</p>
+                          <div className="text-center">
+                            <p className="text-sm text-muted-foreground mb-1">1766</p>
+                            <p className="text-lg font-bold text-foreground">45150</p>
                           </div>
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">60</p>
+                            <p className="text-xs text-foreground">33</p>
+                          </div>
+                        </div>
+  
+                        <AllSitesChart />
+  
+                        <div className="pt-4 border-t border-panel-border mt-4">
+                          <h4 className="text-sm font-semibold text-foreground mb-3">Sites List</h4>
+                          <SitesList onSiteClick={handleSiteClick} />
                         </div>
                       </div>
                     </div>
