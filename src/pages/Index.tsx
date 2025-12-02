@@ -50,6 +50,7 @@ import {
 import type { ReactElement, ReactNode } from 'react';
 import { InteractiveMiningMap } from "@/components/dashboard/InteractiveMiningMap";
 import { useNavigationView } from "@/context/NavigationViewContext";
+import { InteractiveMiningPolygonMap } from "@/components/dashboard/InteractiveMiningPolygonMap";
 
 // Mock data
 const mockSites = [
@@ -452,8 +453,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Zones as sous-onglets - displayed when viewing a specific site */}
-        {navigationLevel === "site-zones" && selectedSite && (
+        {/* Zones as sous-onglets - displayed when viewing a specific site or zone details */}
+        {(navigationLevel === "site-zones" || navigationLevel === "zone-detail") && selectedSite && (
           <div className="flex items-center justify-start px-6 py-3 border-b border-panel-border/50 bg-background/50">
             <div className="flex items-center space-x-2 bg-panel-bg p-1 rounded-full border border-panel-border shadow-sm">
               {mockZones.map((zone) => (
@@ -592,7 +593,7 @@ const Index = () => {
       {/* Main Content */}
       <div className="p-6 space-y-8 animate-fade-in">
         {
-          content === "stat" ? (navigationLevel === "all-sites" ||
+          content === "stat" && navigationLevel !== "zone-detail" && !selectedZone ? (navigationLevel === "all-sites" ||
             mockSites.some(site => site.name.toLowerCase().replace(" ", "-") === activeTab)) && (
             <>
               {/* Top Row */}
@@ -707,49 +708,49 @@ const Index = () => {
                 </div>
                     <div className="lg:col-span-12">
                        {/* All Sites List - Clickable */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {mockSites.map((site) => {
-                  // If we're in site-zones level, only show the selected site
-                  if (navigationLevel === "site-zones" && selectedSite && selectedSite !== site.name) {
-                    return null;
-                  }
-                  return (
-                    <Card
-                      key={site.id}
-                      onClick={() => handleSiteClick(site.name)}
-                      className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
-                          <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {mockSites.map((site) => {
+                            // If we're in site-zones level, only show the selected site
+                            if (navigationLevel === "site-zones" && selectedSite && selectedSite !== site.name) {
+                              return null;
+                            }
+                            return (
+                              <Card
+                                key={site.id}
+                                onClick={() => handleSiteClick(site.name)}
+                                className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
+                              >
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
+                                    <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
+                                  </div>
+                                  <Badge className={
+                                    site.status === "online"
+                                      ? "bg-success/20 text-success border-success/30"
+                                      : "bg-warning/20 text-warning border-warning/30"
+                                  }>
+                                    {site.status}
+                                  </Badge>
+                                </div>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Zones:</span>
+                                    <span className="text-foreground font-medium">{site.zones}</span>
+                                  </div>
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Production:</span>
+                                    <span className="text-foreground font-medium">{site.production}</span>
+                                  </div>
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Efficiency:</span>
+                                    <span className="text-foreground font-medium">{site.efficiency}</span>
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })}
                         </div>
-                        <Badge className={
-                          site.status === "online"
-                            ? "bg-success/20 text-success border-success/30"
-                            : "bg-warning/20 text-warning border-warning/30"
-                        }>
-                          {site.status}
-                        </Badge>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Zones:</span>
-                          <span className="text-foreground font-medium">{site.zones}</span>
-                        </div>
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Production:</span>
-                          <span className="text-foreground font-medium">{site.production}</span>
-                        </div>
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Efficiency:</span>
-                          <span className="text-foreground font-medium">{site.efficiency}</span>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
                     </div>
                   </div>
                 </div>
@@ -891,7 +892,8 @@ const Index = () => {
                     </Badge>
                   }
                 >
-                  <InteractiveMiningMap />
+                  
+                  <InteractiveMiningPolygonMap />
                   
                   <div className="grid grid-cols-3 gap-4 mt-6">
                     <StatsCard
@@ -987,86 +989,235 @@ const Index = () => {
 
         {navigationLevel === "zone-detail" && selectedZone && (
           <>
-            {/* Zone Detail View */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <Card className="p-6 bg-panel-bg border-panel-border shadow-elevated">
-                  <h3 className="text-2xl font-bold text-foreground mb-4">{selectedZone} Overview</h3>
-                  <div className="aspect-video bg-gradient-to-br from-accent/20 via-primary/10 to-secondary/20 rounded-lg border-2 border-panel-border/50 flex items-center justify-center relative overflow-hidden group hover:border-primary/50 transition-all">
-                    <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <polygon points="20,20 80,20 90,50 70,80 30,80 10,50" fill="currentColor" className="text-primary" />
-                      </svg>
-                    </div>
-                    <div className="text-center z-10">
-                      <MapPin className="w-16 h-16 text-primary mx-auto mb-2 animate-pulse" />
-                      <p className="text-lg font-bold text-foreground">{selectedZone} Polygon Map</p>
-                      <p className="text-sm text-muted-foreground">Interactive zone boundary</p>
-                    </div>
-                  </div>
-                </Card>
+            {/* Zone Detail View - Similar to Overview but with polygon map */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                <Card className="p-6 bg-panel-bg border-panel-border shadow-elevated">
-                  <h3 className="text-lg font-bold text-foreground mb-4">Zone Statistics</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-lg bg-gradient-to-br from-success/10 to-transparent border border-success/20">
-                      <p className="text-sm text-muted-foreground mb-1">Daily Output</p>
-                      <p className="text-2xl font-bold text-foreground">1.4k t</p>
-                      <p className="text-xs text-success mt-1">+12% vs yesterday</p>
+                <div className="lg:col-span-9">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                      {/* Left Panel - Targeted Sites */}
+                <div className="lg:col-span-4">
+                  <DashboardCard
+                    title="Targeted Sites"
+                    action={
+                      <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Online
+                      </Badge>
+                    }
+                  >
+                    <div className="space-y-6">
+                      <div className="flex justify-center">
+                        <CircularGauge value={575} max={1000} label="kM" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Summary</span>
+                          <span className="font-semibold text-foreground">513.500</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Trends</p>
+                            <div className="h-12 flex items-end gap-1">
+                              {[40, 60, 45, 70, 55, 65, 80, 75].map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="flex-1 bg-accent rounded-t transition-all hover:bg-primary"
+                                  style={{ height: `${h}%` }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Centre</p>
+                            <p className="text-sm">
+                              <span className="font-semibold text-foreground">84</span>
+                              <span className="text-muted-foreground"> ∨</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Basili/Villag
+                            </p>
+                            <p className="text-xs">
+                              <span className="text-foreground">Fiyile</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-panel-border">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-foreground">Targeted Sites</h4>
+                          <span className="text-xs text-muted-foreground">Updated 2min ago</span>
+                        </div>
+                        <SitesList onSiteClick={handleSiteClick} />
+                      </div>
                     </div>
-                    <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
-                      <p className="text-sm text-muted-foreground mb-1">Efficiency</p>
-                      <p className="text-2xl font-bold text-foreground">94%</p>
-                      <p className="text-xs text-primary mt-1">Target: 90%</p>
+                  </DashboardCard>
+                </div>
+
+                {/* Center - Polygon Map for the selected zone */}
+                <div className="lg:col-span-8">
+                  <DashboardCard
+                    title={`${selectedZone} Overview`}
+                    action={
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/30">
+                          Zone Map
+                        </Badge>
+                        <Badge variant="secondary">
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          Active
+                        </Badge>
+                      </div>
+                    }
+                  >
+                    <InteractiveMiningPolygonMap />
+
+                    <div className="grid grid-cols-3 gap-4 mt-6">
+                      <StatsCard
+                        label="Area"
+                        value="45 ha"
+                        icon={<MapPin className="w-6 h-6 text-white" />}
+                        iconBg="hsl(var(--primary))"
+                      />
+                      <StatsCard
+                        label="Equipment"
+                        value="12"
+                        icon={<Zap className="w-6 h-6 text-white" />}
+                        iconBg="hsl(var(--accent))"
+                      />
+                      <StatsCard
+                        label="Efficiency"
+                        value="94%"
+                        icon={<TrendingUp className="w-6 h-6 text-white" />}
+                        iconBg="hsl(var(--success))"
+                      />
                     </div>
-                    <div className="p-4 rounded-lg bg-gradient-to-br from-accent/10 to-transparent border border-accent/20">
-                      <p className="text-sm text-muted-foreground mb-1">Equipment</p>
-                      <p className="text-2xl font-bold text-foreground">12</p>
-                      <p className="text-xs text-accent mt-1">All operational</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-gradient-to-br from-warning/10 to-transparent border border-warning/20">
-                      <p className="text-sm text-muted-foreground mb-1">Area</p>
-                      <p className="text-2xl font-bold text-foreground">45 ha</p>
-                      <p className="text-xs text-warning mt-1">Medium size</p>
+                  </DashboardCard>
+                </div>
+                    <div className="lg:col-span-12">
+                       {/* Zone-specific information */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {mockZones.map((zone) => {
+                            if (zone.name !== selectedZone) {
+                              return null;
+                            }
+                            return (
+                              <Card
+                                key={zone.id}
+                                className="p-4 bg-panel-bg border-panel-border shadow-card transition-all duration-300"
+                              >
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <Activity className="w-5 h-5 text-accent" />
+                                    <h4 className="font-bold text-foreground">{zone.name}</h4>
+                                  </div>
+                                  <Badge className={
+                                    zone.status === "active"
+                                      ? "bg-success/20 text-success border-success/30"
+                                      : "bg-warning/20 text-warning border-warning/30"
+                                  }>
+                                    {zone.status}
+                                  </Badge>
+                                </div>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Equipment:</span>
+                                    <span className="text-foreground font-medium">{zone.equipment}</span>
+                                  </div>
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Area:</span>
+                                    <span className="text-foreground font-medium">{zone.area}</span>
+                                  </div>
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Site:</span>
+                                    <span className="text-foreground font-medium">{selectedSite}</span>
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
                     </div>
                   </div>
-                </Card>
+                </div>
+
+
+                {/* Right Panel - Zone Stats */}
+                <div className="lg:col-span-3">
+                  <DashboardCard
+                    title="Zone Statistics"
+                    action={
+                      <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
+                        <Activity className="w-3 h-3 mr-1" />
+                        Monitoring
+                      </Badge>
+                    }
+                  >
+                    <div className="space-y-6">
+                      <div className="flex justify-center">
+                        <CircularGauge value={94} max={100} label="%" color="hsl(var(--success))" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Efficiency</span>
+                          <span className="font-semibold text-foreground">94%</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Daily Output</p>
+                            <div className="h-12 flex items-end gap-1">
+                              {[60, 70, 55, 80, 65, 75, 90, 85].map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="flex-1 bg-success rounded-t transition-all hover:bg-success/80"
+                                  style={{ height: `${h}%` }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Performance</p>
+                            <p className="text-sm">
+                              <span className="font-semibold text-success">+12%</span>
+                              <span className="text-muted-foreground"> vs yesterday</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Target: 90%
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-panel-border">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-foreground">Zone Details</h4>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
+                              Export
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-xs hover:bg-primary/10 hover:text-primary">
+                              Alerts
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="p-3 rounded-lg bg-warning/10 border border-warning/30">
+                            <p className="text-sm font-medium text-foreground mb-1">Maintenance Due</p>
+                            <p className="text-xs text-muted-foreground">Equipment #3 requires service</p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-success/10 border border-success/30">
+                            <p className="text-sm font-medium text-foreground mb-1">All Clear</p>
+                            <p className="text-xs text-muted-foreground">No critical issues</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </DashboardCard>
+                </div>
               </div>
-
-              <div className="space-y-6">
-                <Card className="p-6 bg-panel-bg border-panel-border shadow-elevated">
-                  <h3 className="text-xl font-bold text-foreground mb-4">{selectedZone} Efficiency</h3>
-                  <CircularGauge value={94} max={100} label="%" color="hsl(var(--success))" />
-                  <div className="mt-4 pt-4 border-t border-panel-border">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Target</span>
-                      <span className="text-foreground font-medium">90%</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Performance</span>
-                      <span className="text-success font-medium">+4%</span>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="p-6 bg-panel-bg border-panel-border shadow-elevated">
-                  <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-warning" />
-                    Active Alerts
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-lg bg-warning/10 border border-warning/30">
-                      <p className="text-sm font-medium text-foreground mb-1">Maintenance Due</p>
-                      <p className="text-xs text-muted-foreground">Equipment #3 requires service</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-success/10 border border-success/30">
-                      <p className="text-sm font-medium text-foreground mb-1">All Clear</p>
-                      <p className="text-xs text-muted-foreground">No critical issues</p>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            </div>
           </>
         )}
 
