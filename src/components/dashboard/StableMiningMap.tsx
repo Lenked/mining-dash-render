@@ -4,10 +4,10 @@ import { Badge } from "@/components/ui/badge";
 
 // Site data with coordinates
 const sites = [
-  { id: 1, name: "Site Alpha", status: "alert", value: "45.2%", lat: -33.8688, lng: 151.2093, production: "4.2k t/day", efficiency: "94%" }, // Sydney
-  { id: 2, name: "Site Beta",  status: "online", value: "78.5%", lat: -37.8136, lng: 144.9631, production: "3.8k t/day", efficiency: "95%" }, // Melbourne
-  { id: 3, name: "Site Gamma", status: "alert", value: "23.1%", lat: -34.9287, lng: 138.6007, production: "2.1k t/day", efficiency: "60%" }, // Adelaide
-  { id: 4, name: "Site Delta", status: "online", value: "91.3%", lat: -31.9505, lng: 115.8605, production: "5.3k t/day", efficiency: "107%" }, // Perth
+  { id: 1, name: "Site Alpha", status: "alert", value: "45.2%", lat: -33.8688, lng: 151.2093, production: "4.2k t/day", efficiency: "94%" },
+  { id: 2, name: "Site Beta",  status: "online", value: "78.5%", lat: -37.8136, lng: 144.9631, production: "3.8k t/day", efficiency: "95%" },
+  { id: 3, name: "Site Gamma", status: "alert", value: "23.1%", lat: -34.9287, lng: 138.6007, production: "2.1k t/day", efficiency: "60%" },
+  { id: 4, name: "Site Delta", status: "online", value: "91.3%", lat: -31.9505, lng: 115.8605, production: "5.3k t/day", efficiency: "107%" },
 ];
 
 export function StableMiningMap() {
@@ -17,15 +17,13 @@ export function StableMiningMap() {
   const [error, setError] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Memoized initialization function with better error handling
   const initializeMap = useCallback(async () => {
     try {
-      // Wait for the map container to be available with multiple attempts
       let attempts = 0;
-      const maxAttempts = 10; // Try up to 10 times (1 second)
+      const maxAttempts = 10;
 
       while (attempts < maxAttempts && (!mapRef.current || !mapRef.current.offsetWidth || !mapRef.current.offsetHeight)) {
-        await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+        await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
       }
 
@@ -33,31 +31,19 @@ export function StableMiningMap() {
         throw new Error("Map container is still not available after waiting");
       }
 
-      // Use the loader with proper error handling
       const { Loader } = await import('@googlemaps/js-api-loader');
 
-      // Create loader instance with proper configuration
       const loader = new Loader({
         apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyClTxih2WLTW8D15Z3X5fdoPncQZJA_p8o",
         version: "weekly",
-        libraries: ['maps', 'marker']
       });
 
-      // Load required libraries
-      const [mapsLibrary, markerLibrary] = await Promise.all([
-        loader.importLibrary('maps') as Promise<google.maps.MapsLibrary>,
-        loader.importLibrary('marker') as Promise<google.maps.MarkerLibrary>
-      ]);
+      await (loader as any).load();
 
-      const { Map } = mapsLibrary;
-      const { AdvancedMarkerElement } = markerLibrary;
-
-      // Calculate center based on average of all sites
       const avgLat = sites.reduce((sum, site) => sum + site.lat, 0) / sites.length;
       const avgLng = sites.reduce((sum, site) => sum + site.lng, 0) / sites.length;
 
-      // Create the map instance
-      const map = new Map(mapRef.current, {
+      const map = new google.maps.Map(mapRef.current!, {
         center: { lat: avgLat, lng: avgLng },
         zoom: 4,
         mapTypeId: "satellite",
@@ -66,7 +52,6 @@ export function StableMiningMap() {
         fullscreenControl: true,
         zoomControl: true,
         gestureHandling: "auto",
-        // Add proper map styling for mining context
         styles: [
           {
             featureType: "all",
@@ -81,37 +66,30 @@ export function StableMiningMap() {
         ]
       });
 
-      // Store reference to map instance
       mapInstanceRef.current = map;
 
-      // Add markers for each site
       sites.forEach(site => {
-        // Create a DOM element for the marker
-        const markerElement = document.createElement('div');
-        markerElement.innerHTML = `
-          <div class="bg-${site.status === 'alert' ? 'destructive' : 'primary'} text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-lg transform transition-transform duration-200 hover:scale-110">
-            ${site.name.charAt(0)}
-          </div>
-        `;
-
-        // Create advanced marker with the DOM element
-        const marker = new AdvancedMarkerElement({
+        const marker = new google.maps.Marker({
           map: map,
           position: { lat: site.lat, lng: site.lng },
           title: site.name,
-          content: markerElement,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 12,
+            fillColor: site.status === 'alert' ? '#ef4444' : '#3b82f6',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+          }
         });
 
-        // Add click listener to marker
         marker.addListener('click', () => {
           console.log(`Clicked on ${site.name}`);
-          // Center map on clicked marker
           map.panTo({ lat: site.lat, lng: site.lng });
           map.setZoom(8);
         });
       });
 
-      // Set loaded state
       setMapLoaded(true);
       setIsLoading(false);
     } catch (err) {
@@ -121,16 +99,14 @@ export function StableMiningMap() {
     }
   }, []);
 
-  // Effect to initialize map when component mounts and DOM is ready
   useEffect(() => {
     let isMounted = true;
 
-    // Wait for the next tick to ensure DOM is ready
     const initTimer = setTimeout(() => {
       if (isMounted && !mapLoaded && !error) {
         initializeMap();
       }
-    }, 100); // Slightly longer delay to ensure DOM is ready
+    }, 100);
 
     return () => {
       clearTimeout(initTimer);
@@ -138,17 +114,12 @@ export function StableMiningMap() {
     };
   }, [mapLoaded, error, initializeMap]);
 
-  // Handle route changes that might affect map visibility
   useEffect(() => {
-    // If the map has been loaded but the container is not visible,
-    // trigger a resize to ensure proper rendering
     if (mapLoaded && mapInstanceRef.current && mapRef.current) {
-      // Use debounce to avoid too many resize events
       const handleResize = () => {
         if (mapInstanceRef.current) {
           setTimeout(() => {
             google.maps.event.trigger(mapInstanceRef.current!, 'resize');
-            // Re-center the map after resize
             const avgLat = sites.reduce((sum, site) => sum + site.lat, 0) / sites.length;
             const avgLng = sites.reduce((sum, site) => sum + site.lng, 0) / sites.length;
             mapInstanceRef.current?.setCenter({ lat: avgLat, lng: avgLng });
@@ -170,12 +141,8 @@ export function StableMiningMap() {
         <div className="text-center p-6">
           <AlertTriangle className="w-12 h-12 text-red-600 mx-auto mb-3" />
           <h3 className="text-lg font-bold text-red-800 mb-2">Map Loading Error</h3>
-          <p className="text-red-700 mb-4">
-            {error}
-          </p>
-          <p className="text-sm text-red-600 mb-4">
-            Please make sure you have a valid Google Maps API key in your .env file
-          </p>
+          <p className="text-red-700 mb-4">{error}</p>
+          <p className="text-sm text-red-600 mb-4">Please make sure you have a valid Google Maps API key in your .env file</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
@@ -201,14 +168,12 @@ export function StableMiningMap() {
 
   return (
     <div className="relative h-full min-h-[400px]">
-      {/* Map container */}
       <div
         ref={mapRef}
         className="w-full h-full rounded-lg overflow-hidden border-2 border-panel-border/50 shadow-elevated"
         style={{ height: '100%', width: '100%' }}
       />
 
-      {/* Map overlays - information panels */}
       <div className="absolute top-4 left-4 bg-secondary/90 backdrop-blur-sm px-4 py-3 rounded-lg border border-panel-border shadow-card">
         <p className="text-xs text-muted-foreground mb-1">Active Sites</p>
         <p className="text-2xl font-bold text-primary">{sites.filter(s => s.status === 'online').length} / {sites.length}</p>
