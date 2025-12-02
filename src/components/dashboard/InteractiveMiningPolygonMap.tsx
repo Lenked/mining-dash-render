@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Navigation, AlertTriangle, Target, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Loader } from '@googlemaps/js-api-loader';
 
 // Données des zones avec des coordonnées pour les polygones
 const zones = [
@@ -63,17 +62,18 @@ export function InteractiveMiningPolygonMap({ selectedZone }: InteractiveMiningP
 
     const initMap = async () => {
       try {
-        // Charger l'API Google Maps
+        // Charger l'API Google Maps dynamiquement
+        const { Loader } = await import('@googlemaps/js-api-loader');
         const loader = new Loader({
           apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyClTxih2WLTW8D15Z3X5fdoPncQZJA_p8o",
           version: "weekly",
         });
 
-        const google = await loader.load();
+        await (loader as any).load();
 
         // Créer la carte
         const map = new google.maps.Map(containerRef.current!, {
-          center: { lat: -33.8688, lng: 151.2093 }, // Centre sur Sydney par défaut
+          center: { lat: -33.8688, lng: 151.2093 },
           zoom: 12,
           mapTypeId: "satellite",
           disableDefaultUI: true,
@@ -114,15 +114,9 @@ export function InteractiveMiningPolygonMap({ selectedZone }: InteractiveMiningP
         mapRef.current = map;
         setMapLoaded(true);
 
-        // Ajouter un contrôle de zoom
-        const zoomControlDiv = document.createElement('div');
-        zoomControlDiv.style.margin = '10px';
-        new google.maps.ZoomControl(zoomControlDiv);
-        map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(zoomControlDiv);
-
         // Si une zone est sélectionnée, dessiner son polygone
         if (selectedZone) {
-          drawZonePolygon(map, selectedZone, google);
+          drawZonePolygon(map, selectedZone);
         }
       } catch (error) {
         console.error('Erreur lors du chargement de la carte:', error);
@@ -135,25 +129,11 @@ export function InteractiveMiningPolygonMap({ selectedZone }: InteractiveMiningP
 
   // Dessiner le polygone de la zone sélectionnée
   useEffect(() => {
-    if (!mapLoaded || !selectedZone) return;
-
-    const drawPolygon = async () => {
-      // Charger l'API Google Maps si ce n'est pas déjà fait
-      const loader = new Loader({
-        apiKey: "AIzaSyClTxih2WLTW8D15Z3X5fdoPncQZJA_p8o",
-        version: "weekly",
-      });
-
-      const google = await loader.load();
-      if (mapRef.current) {
-        drawZonePolygon(mapRef.current, selectedZone, google);
-      }
-    };
-
-    drawPolygon();
+    if (!mapLoaded || !selectedZone || !mapRef.current) return;
+    drawZonePolygon(mapRef.current, selectedZone);
   }, [selectedZone, mapLoaded]);
 
-  const drawZonePolygon = (map: google.maps.Map, zoneName: string, google: any) => {
+  const drawZonePolygon = (map: google.maps.Map, zoneName: string) => {
     // Supprimer le polygone précédent s'il existe
     if (polygonRef.current) {
       polygonRef.current.setMap(null);
@@ -166,10 +146,10 @@ export function InteractiveMiningPolygonMap({ selectedZone }: InteractiveMiningP
     // Créer le polygone
     const polygon = new google.maps.Polygon({
       paths: zone.coordinates,
-      strokeColor: "#3b82f6", // blue-500
+      strokeColor: "#3b82f6",
       strokeOpacity: 0.8,
       strokeWeight: 2,
-      fillColor: "#fbbf24", // yellow-400
+      fillColor: "#fbbf24",
       fillOpacity: 0.35,
     });
 

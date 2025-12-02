@@ -51,6 +51,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { InteractiveMiningMap } from "@/components/dashboard/InteractiveMiningMap";
 import { useNavigationView } from "@/context/NavigationViewContext";
 import { InteractiveMiningPolygonMap } from "@/components/dashboard/InteractiveMiningPolygonMap";
+import { GridDashboardContent } from "@/components/dashboard/GridDashboardContent";
 
 // Mock data
 const mockSites = [
@@ -165,11 +166,9 @@ const TabButton = ({
         handleRefresh();
         break;
       case 'export':
-        // Placeholder for export functionality
         alert(`Exporting data for ${label}`);
         break;
       case 'duplicate':
-        // Placeholder for duplicate functionality
         alert(`Duplicating tab: ${label}`);
         break;
       case 'close':
@@ -178,21 +177,13 @@ const TabButton = ({
         }
         break;
       case 'close-others':
-        // Placeholder for close others functionality
         alert('Closing other tabs');
         break;
       case 'close-right':
-        // Placeholder for close right functionality
         alert('Closing tabs to the right');
         break;
       case 'vue-temps-reel':
-        // Handle the real-time operations view
-        setActiveTab("realtime-ops"); // Switch to real-time operations view
-        setNavigationLevel("all-sites");
-        setSelectedSite(null);
-        setSelectedZone(null);
-        setContent("table"); // Show table view for real-time operations
-        setActiveFleetFilter('all'); // Set 'all' filter by default
+        // Handled by parent component via onClick
         break;
       default:
         break;
@@ -248,7 +239,7 @@ const TabButton = ({
 
 const Index = () => {
   const { activeView } = useNavigationView();
-  const [activeTab, setActiveTab] = useState<"all-sites" | "realtime-ops">("all-sites");
+  const [activeTab, setActiveTab] = useState<string>("all-sites");
   const [searchQuery, setSearchQuery] = useState("");
   const [navigationLevel, setNavigationLevel] = useState<NavigationLevel>("all-sites");
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
@@ -605,172 +596,22 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="p-6 space-y-8 animate-fade-in">
-        {
-          content === "stat" && navigationLevel !== "zone-detail" && !selectedZone ? (navigationLevel === "all-sites" ||
+        {/* Dashboard with Draggable Grid */}
+        {content === "stat" && navigationLevel !== "zone-detail" && !selectedZone && (navigationLevel === "all-sites" ||
             mockSites.some(site => site.name.toLowerCase().replace(" ", "-") === activeTab)) && (
-            <>
-              {/* Top Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-  
-                <div className="lg:col-span-9">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                      {/* Left Panel - Targeted Sites */}
-                <div className="lg:col-span-4">
-                  <DashboardCard
-                    title="Targeted Sites"
-                    action={
-                      <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Online
-                      </Badge>
-                    }
-                  >
-                    <div className="space-y-6">
-                      <div className="flex justify-center">
-                        <CircularGauge value={575} max={1000} label="kM" />
-                      </div>
-  
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Summary</span>
-                          <span className="font-semibold text-foreground">513.500</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Trends</p>
-                            <div className="h-12 flex items-end gap-1">
-                              {[40, 60, 45, 70, 55, 65, 80, 75].map((h, i) => (
-                                <div
-                                  key={i}
-                                  className="flex-1 bg-accent rounded-t transition-all hover:bg-primary"
-                                  style={{ height: `${h}%` }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Centre</p>
-                            <p className="text-sm">
-                              <span className="font-semibold text-foreground">84</span>
-                              <span className="text-muted-foreground"> ∨</span>
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Basili/Villag
-                            </p>
-                            <p className="text-xs">
-                              <span className="text-foreground">Fiyile</span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-  
-                      <div className="pt-4 border-t border-panel-border">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-semibold text-foreground">Targeted Sites</h4>
-                          <span className="text-xs text-muted-foreground">Updated 2min ago</span>
-                        </div>
-                        <SitesList onSiteClick={handleSiteClick} />
-                      </div>
-                    </div>
-                  </DashboardCard>
-                </div>
-  
-                {/* Center - Map */}
-                <div className="lg:col-span-8">
-                  <DashboardCard
-                    title={
-                      navigationLevel === "site-zones" && selectedSite
-                        ? `${selectedSite} Overview`
-                        : "All Sites Overview"
-                    }
-                    action={
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
-                          {navigationLevel === "site-zones" ? "Site Map" : "Live Map"}
-                        </Badge>
-                        <Badge variant="secondary">
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
-                          {navigationLevel === "site-zones" ? "1 Active" : "4 Active"}
-                        </Badge>
-                      </div>
-                    }
-                  >
-                    <InteractiveMiningMap />
-  
-                    <div className="grid grid-cols-3 gap-4 mt-6">
-                      <StatsCard
-                        label="Found"
-                        value="86.6%"
-                        icon={<Activity className="w-6 h-6 text-white" />}
-                        iconBg="hsl(var(--success))"
-                      />
-                      <StatsCard
-                        label="Reuyertia"
-                        value="2"
-                        icon={<TrendingUp className="w-6 h-6 text-white" />}
-                        iconBg="hsl(var(--chart-primary))"
-                      />
-                      <StatsCard
-                        label="Fleneling"
-                        value="189%"
-                        icon={<BarChart3 className="w-6 h-6 text-white" />}
-                        iconBg="hsl(var(--accent))"
-                      />
-                    </div>
-                  </DashboardCard>
-                </div>
-                    <div className="lg:col-span-12">
-                       {/* All Sites List - Clickable */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                          {mockSites.map((site) => {
-                            // If we're in site-zones level, only show the selected site
-                            if (navigationLevel === "site-zones" && selectedSite && selectedSite !== site.name) {
-                              return null;
-                            }
-                            return (
-                              <Card
-                                key={site.id}
-                                onClick={() => handleSiteClick(site.name)}
-                                className="p-4 bg-panel-bg border-panel-border shadow-card hover:shadow-elevated hover:scale-105 hover:border-primary/50 transition-all duration-300 cursor-pointer group"
-                              >
-                                <div className="flex items-start justify-between mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <MapPin className="w-5 h-5 text-primary group-hover:animate-pulse" />
-                                    <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{site.name}</h4>
-                                  </div>
-                                  <Badge className={
-                                    site.status === "online"
-                                      ? "bg-success/20 text-success border-success/30"
-                                      : "bg-warning/20 text-warning border-warning/30"
-                                  }>
-                                    {site.status}
-                                  </Badge>
-                                </div>
-                                <div className="space-y-2 text-sm">
-                                  <div className="flex justify-between text-muted-foreground">
-                                    <span>Zones:</span>
-                                    <span className="text-foreground font-medium">{site.zones}</span>
-                                  </div>
-                                  <div className="flex justify-between text-muted-foreground">
-                                    <span>Production:</span>
-                                    <span className="text-foreground font-medium">{site.production}</span>
-                                  </div>
-                                  <div className="flex justify-between text-muted-foreground">
-                                    <span>Efficiency:</span>
-                                    <span className="text-foreground font-medium">{site.efficiency}</span>
-                                  </div>
-                                </div>
-                              </Card>
-                            );
-                          })}
-                        </div>
-                    </div>
-                  </div>
-                </div>
-              
-  
-                {/* Right Panel - Target Sites Stats */}
-                <div className="lg:col-span-3">
+          <GridDashboardContent
+            navigationLevel={navigationLevel}
+            selectedSite={selectedSite}
+            onSiteClick={handleSiteClick}
+            mockSites={mockSites}
+          />
+        )}
+
+        {/* Right Panel - Target Sites Stats - Kept for site-zones navigation */}
+        {content === "stat" && navigationLevel === "site-zones" && selectedSite && (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-3">
                   <DashboardCard
                     title="Target Sites"
                     action={
