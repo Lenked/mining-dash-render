@@ -893,7 +893,7 @@ const Index = () => {
                   }
                 >
                   
-                  <InteractiveMiningPolygonMap />
+                  <InteractiveMiningPolygonMap selectedZone={null} />
                   
                   <div className="grid grid-cols-3 gap-4 mt-6">
                     <StatsCard
@@ -1071,7 +1071,7 @@ const Index = () => {
                       </div>
                     }
                   >
-                    <InteractiveMiningPolygonMap />
+                    <InteractiveMiningPolygonMap selectedZone={selectedZone} />
 
                     <div className="grid grid-cols-3 gap-4 mt-6">
                       <StatsCard

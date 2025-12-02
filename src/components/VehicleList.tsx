@@ -7,13 +7,17 @@ import {
   RefreshCw, 
   Car, 
   Bike, 
+  Truck,
+  Tractor,
   Settings, 
   Trash2, 
   Cloud, 
   Wifi, 
   User, 
   AlertCircle, 
-  Bell 
+  Bell, 
+  TractorIcon,
+  MenuIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -69,10 +73,19 @@ export const VehicleList = () => {
             <RefreshCw className="h-4 w-4 text-white" />
           </Button>
           <Button size="icon" variant="outline">
-            <Bike className="h-4 w-4 text-white" />
+            <Truck className="h-4 w-4 text-white" />
+          </Button>
+          {/* <Button size="icon" variant="outline">
+            <Excavator className="h-4 w-4 text-white" />
+          </Button> */}
+          <Button size="icon" variant="outline">
+            <TractorIcon className="h-4 w-4 text-white" />
           </Button>
           <Button size="icon" variant="outline">
             <Car className="h-4 w-4 text-white" />
+          </Button>
+          <Button size="icon" variant="outline">
+            <MenuIcon className="h-4 w-4 text-white" />
           </Button>
         </div>
         

@@ -26,15 +26,16 @@ const generateStatsData = () => {
     variant: "success" | "white" | "warning" | "destructive" | "primary" | "offline";
     icon: JSX.Element;
   }[] = [
+    { label: "Flotte", variant: "warning", icon: <Activity className="w-5 h-5" /> },
+    { label: "Suivi", variant: "success", icon: <Activity className="w-5 h-5" /> },
+    { label: "Non suivi", variant: "destructive", icon: <BarChart3 className="w-5 h-5" /> },
     { label: "En marche", variant: "success", icon: <Activity className="w-5 h-5" /> },
-    { label: "Hors ligne", variant: "white", icon: <Truck className="w-5 h-5" /> },
-    { label: "Ralenti", variant: "warning", icon: <MapPin className="w-5 h-5" /> },
-    { label: "Arrêté", variant: "destructive", icon: <BarChart3 className="w-5 h-5" /> },
-    { label: "Suivi", variant: "primary", icon: <Activity className="w-5 h-5" /> },
-    { label: "Aucune", variant: "white", icon: <MapPin className="w-5 h-5" /> },
+    { label: "Ralenti", variant: "success", icon: <MapPin className="w-5 h-5" /> },
+    { label: "Arrêté", variant: "success", icon: <BarChart3 className="w-5 h-5" /> },
+    { label: "No GPS", variant: "success", icon: <BarChart3 className="w-5 h-5" /> },
+    { label: "Hors ligne", variant: "destructive", icon: <Truck className="w-5 h-5" /> },
+    { label: "Aucune donnée", variant: "destructive", icon: <Activity className="w-5 h-5" /> },
     { label: "Eteint", variant: "destructive", icon: <Truck className="w-5 h-5" /> },
-    { label: "Aucune donnée", variant: "warning", icon: <Activity className="w-5 h-5" /> },
-    { label: "Non suivi", variant: "primary", icon: <BarChart3 className="w-5 h-5" /> },
   ];
 
   return statsTypes.map((statType, index) => ({
