@@ -9,6 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
   Mountain,
@@ -28,20 +29,27 @@ import {
   SettingsIcon,
   HistoryIcon,
   Tractor,
+  UserCheck,
+  MessageCircle,
+  PanelLeft,
+  LayoutDashboardIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigationView } from "@/context/NavigationViewContext";
 
 const navItems = [
+  { title: "Dashboard", url: "/", icon: LayoutDashboardIcon },
   { title: "Vue temps reel des operations", url: "", icon: TimerIcon },
-  { title: "Tracking", url: "/sonics", icon: Tractor },
-  { title: "Gestion des Trajets", url: "/sonics", icon: CarIcon },
+  { title: "Tracking", url: "/tracking", icon: Tractor },
+  { title: "Gestion des Trajets", url: "/ltm", icon: CarIcon },
   { title: "Gestion des Notifications", url: "/battles", icon: BellIcon },
   { title: "Gestion des Sites", url: "/routes", icon: AreaChart },
   { title: "Rapport", url: "/sonars", icon: DockIcon },
   { title: "Analyses", url: "/statics", icon: BarChart3 },
   { title: "Historique des Actions", url: "/statics", icon: HistoryIcon },
   { title: "Parametres", url: "/statics", icon: SettingsIcon },
+  { title: "Support", url: "/support", icon: UserCheck },
+  { title: "Chat", url: "/chat", icon: MessageCircle },
 
 ];
 
@@ -67,18 +75,36 @@ export function MiningSidebar() {
       collapsible="icon"
     >
       <SidebarContent>
-        <div className="px-4 py-6">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-card">
-              <Mountain className="w-6 h-6 text-secondary-foreground" />
-            </div>
-            {!isCollapsed && (
-              <div>
-                <span className="text-xl font-bold text-sidebar-foreground block">FS IOT Mining</span>
-                <span className="text-xs text-muted-foreground">Fleet Solution IOT Mining</span>
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-3 mb-2">
+            {isCollapsed ? (
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-card">
+                <Mountain className="w-4 h-4 text-secondary-foreground" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-card">
+                <Mountain className="w-6 h-6 text-secondary-foreground" />
               </div>
             )}
+            {!isCollapsed && (
+              <>
+                <div>
+                  <span className="text-xl font-bold text-sidebar-foreground block">FS IOT Mining</span>
+                  <span className="text-xs text-muted-foreground">Fleet Solution IOT Mining</span>
+                </div>
+                <div className="ml-auto">
+                  <SidebarTrigger className="p-2 rounded-lg transition-all duration-200 text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground" />
+                </div>
+              </>
+            )}
           </div>
+
+          {/* Bouton pour étendre/réduire le sidebar (mode réduit) */}
+          {isCollapsed && (
+            <div className="flex justify-center">
+              <SidebarTrigger className="mt-1 p-2 rounded-lg transition-all duration-200 text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground" />
+            </div>
+          )}
         </div>
 
         <SidebarGroup>
