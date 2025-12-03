@@ -163,7 +163,7 @@ export const AllSitesOverviewCard = ({ navigationLevel, selectedSite }: AllSites
               />
             </div>
 
-            {/* Diagramme de ligne */}
+            {/* Diagramme de ligne 
             <div className="mt-6">
               <LineChart
                 data={chartData}
@@ -172,7 +172,7 @@ export const AllSitesOverviewCard = ({ navigationLevel, selectedSite }: AllSites
                 title="Volume au fil du temps"
                 color="hsl(var(--chart-primary))"
               />
-            </div>
+            </div>*/}
       </DashboardCard>
     </div>
   );

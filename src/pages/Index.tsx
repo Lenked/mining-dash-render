@@ -15,6 +15,7 @@ import { TargetSitesCard } from "@/components/dashboard/TargetSitesCard";
 // import { ZoneOverviewCard } from "@/components/dashboard/ZoneOverviewCard";
 // import { SiteZonesMapCard } from "@/components/dashboard/SiteZonesMapCard";
 import { Badge } from "@/components/ui/badge";
+import { LineChart } from "@/components/dashboard/LineChart";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -624,6 +625,34 @@ const Index = () => {
                         navigationLevel={navigationLevel}
                         selectedSite={selectedSite}
                       />
+                    </div>
+
+                    {/* Line Chart Section - separate section below the map */}
+                    <div className="lg:col-span-12 mt-6">
+                      <DashboardCard
+                        title="Évolution du Volume de Production"
+                        action={
+                          <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30">
+                            <TrendingUp className="w-3 h-3 mr-1" />
+                            Tendances
+                          </Badge>
+                        }
+                      >
+                        <LineChart
+                          data={[
+                            { date: 'Jan', volume: 4000 },
+                            { date: 'Fév', volume: 3000 },
+                            { date: 'Mar', volume: 2000 },
+                            { date: 'Avr', volume: 2780 },
+                            { date: 'Mai', volume: 1890 },
+                            { date: 'Jun', volume: 2390 },
+                            { date: 'Jul', volume: 3490 },
+                          ]}
+                          xKey="date"
+                          yKey="volume"
+                          color="hsl(var(--chart-primary))"
+                        />
+                      </DashboardCard>
                     </div>
 
                     <div className="lg:col-span-12">
